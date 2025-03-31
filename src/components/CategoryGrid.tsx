@@ -39,63 +39,113 @@ const categories = [
     image:
       "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?auto=format&fit=crop&w=400&q=80",
   },
+  {
+    id: "shoes",
+    name: "Shoes",
+    image:
+      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80",
+  },
+  {
+    id: "jackets",
+    name: "Jackets",
+    image:
+      "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?auto=format&fit=crop&w=400&q=80",
+  },
+  {
+    id: "hats",
+    name: "Hats",
+    image:
+      "https://images.unsplash.com/photo-1521369909029-2b2f91c6dbf8?auto=format&fit=crop&w=400&q=80",
+  },
+  {
+    id: "jeans",
+    name: "Jeans",
+    image:
+      "https://unsplash.com/photos/two-hats-sitting-on-the-sand-of-a-beach-bfH7BHbIhwg",
+  },
 ];
 
-export function CategoryGrid() {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [isHovered, setIsHovered] = useState(false);
+// Duplicate array for seamless looping
+const duplicatedCategories = [...categories, ...categories];
 
-  // Determine how many items to show based on screen size
-  const getVisibleItems = () => {
-    if (window.innerWidth >= 1024) return 6; // Large screens
-    if (window.innerWidth >= 768) return 3; // Medium screens
-    return 2; // Small screens
-  };
+const useWindowSize = () => {
+  const [windowSize, setWindowSize] = useState(window.innerWidth);
 
-  const handleNext = () => {
-    setCurrentSlide((prev) =>
-      (prev + 1) * getVisibleItems() >= categories.length ? 0 : prev + 1
-    );
-  };
-
-  const handlePrev = () => {
-    setCurrentSlide((prev) =>
-      prev === 0
-        ? Math.floor((categories.length - 1) / getVisibleItems())
-        : prev - 1
-    );
-  };
-
-  // Auto-sliding effect
   useEffect(() => {
-    // Only auto-slide if not hovered
-    if (!isHovered) {
-      const autoSlideInterval = setInterval(() => {
-        handleNext();
-      }, 3000); // Change slide every 3 seconds
+    const handleResize = () => setWindowSize(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
-      // Cleanup interval on unmount or when dependencies change
-      return () => clearInterval(autoSlideInterval);
+  return windowSize;
+};
+
+export function CategoryGrid() {
+  const [isHovered, setIsHovered] = useState(false);
+  const [direction, setDirection] = useState(1); // 1 for right-to-left, -1 for left-to-right
+  const [speed, setSpeed] = useState(1); // Speed multiplier (1 is default)
+  const windowWidth = useWindowSize();
+
+  const getVisibleItems = () => {
+    if (windowWidth >= 1024) return 6;
+    if (windowWidth >= 768) return 3;
+    return 2;
+  };
+
+  const visibleItems = getVisibleItems();
+  const baseDuration = categories.length * 4; // Base duration: 4 seconds per item
+  const animationDuration = baseDuration / speed; // Adjust duration based on speed
+
+  // Handle arrow clicks
+  const handleLeftClick = () => {
+    if (direction === 1) {
+      setDirection(-1); // Reverse direction to left-to-right
+    } else {
+      setSpeed((prev) => Math.min(prev + 0.5, 3)); // Increase speed, max 3x
     }
-  }, [currentSlide, isHovered]);
+  };
+
+  const handleRightClick = () => {
+    if (direction === -1) {
+      setDirection(1); // Reverse direction to right-to-left
+    } else {
+      setSpeed((prev) => Math.min(prev + 0.5, 3)); // Increase speed, max 3x
+    }
+  };
+
+  // Keyboard arrow key support
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent): void => {
+      if (event.key === "ArrowLeft") {
+        handleLeftClick();
+      } else if (event.key === "ArrowRight") {
+        handleRightClick();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [direction, speed]);
 
   return (
     <div
-      className="bg-[#FFF5F2] py-16 relative"
+      className="bg-[#FFF5F2] py-16 relative overflow-hidden"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="container mx-auto px-4 relative">
         {/* Navigation Arrows */}
         <button
-          onClick={handlePrev}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/70 rounded-full p-2 shadow-md hover:bg-white transition"
+          onClick={handleLeftClick}
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/70 rounded-full p-2 shadow-md hover:bg-white transition-colors"
+          aria-label={direction === 1 ? "Reverse direction" : "Speed up"}
         >
           <ChevronLeft className="w-6 h-6" />
         </button>
         <button
-          onClick={handleNext}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/70 rounded-full p-2 shadow-md hover:bg-white transition"
+          onClick={handleRightClick}
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/70 rounded-full p-2 shadow-md hover:bg-white transition-colors"
+          aria-label={direction === -1 ? "Reverse direction" : "Speed up"}
         >
           <ChevronRight className="w-6 h-6" />
         </button>
@@ -103,18 +153,18 @@ export function CategoryGrid() {
         {/* Carousel Container */}
         <div className="overflow-hidden">
           <div
-            className="flex transition-transform duration-500 ease-in-out"
+            className="flex will-change-transform"
             style={{
-              transform: `translateX(-${
-                currentSlide * (100 / getVisibleItems())
-              }%)`,
-              width: `${(categories.length / getVisibleItems()) * 100}%`,
+              animation: `scroll ${animationDuration}s linear infinite`,
+              animationPlayState: isHovered ? "paused" : "running",
+              animationDirection: direction === 1 ? "normal" : "reverse",
             }}
           >
-            {categories.map((category) => (
+            {duplicatedCategories.map((category, index) => (
               <div
-                key={category.id}
+                key={`${category.id}-${index}`}
                 className="w-1/2 md:w-1/3 lg:w-1/6 flex-shrink-0 px-2"
+                style={{ flex: `0 0 ${100 / visibleItems}%` }}
               >
                 <Link
                   to={`/category/${category.id}`}
@@ -124,7 +174,8 @@ export function CategoryGrid() {
                     <img
                       src={category.image}
                       alt={category.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-in-out"
+                      loading="lazy"
                     />
                   </div>
                   <h3 className="font-medium">{category.name}</h3>
@@ -134,6 +185,18 @@ export function CategoryGrid() {
           </div>
         </div>
       </div>
+
+      {/* CSS Animation */}
+      <style>{`
+        @keyframes scroll {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-50%);
+          }
+        }
+      `}</style>
     </div>
   );
 }
