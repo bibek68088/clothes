@@ -52,16 +52,16 @@ const products: Product[] = [
   },
   {
     id: "3",
-    name: "Double Snap Unisphere Hoodie",
-    brand: "Unknown",
-    price: 65.0,
+    name: "Classic Leather Sneakers",
+    brand: "Nike",
+    price: 79.99,
     originalPrice: 90.0,
     discount: 27,
-    colors: ["red", "gray"],
-    category: "outerwear",
-    sizes: ["S", "M", "L", "XL", "XXL"],
+    colors: ["white", "black", "brown"],
+    category: "shoes",
+    sizes: ["7", "8", "9", "10", "11"],
     image:
-      "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c25lYWtlcnN8ZW58MHx8MHx8fDA%3D",
   },
 ];
 

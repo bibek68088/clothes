@@ -1,57 +1,58 @@
-import { useState } from "react";
-import { useParams } from "react-router-dom";
-import { getProductById } from "../components/data/products";
-import { useCart } from "../store/useCart";
+import { useState } from "react"
+import { useParams } from "react-router-dom"
+import { getProductById } from "../components/data/products"
+import { useCart } from "../store/useCart"
 
 export function ProductPage() {
-  const { id } = useParams();
-  const product = getProductById(id || "");
-  const { addItem } = useCart();
+  const { id } = useParams()
+  const product = getProductById(id || "")
+  const { addItem } = useCart()
 
-  const [selectedColor, setSelectedColor] = useState<string | null>(null);
-  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null)
+  const [selectedSize, setSelectedSize] = useState<string | null>(null)
+  const [addedToCart, setAddedToCart] = useState(false)
 
   if (!product) {
-    return <div>Product not found</div>;
+    return <div>Product not found</div>
   }
 
   const handleAddToCart = () => {
     if (!selectedColor) {
-      alert("Please select a color");
-      return;
+      alert("Please select a color")
+      return
     }
     if (!selectedSize) {
-      alert("Please select a size");
-      return;
+      alert("Please select a size")
+      return
     }
 
     // Add the item to cart with selected color and size
-    addItem({
-      ...product,
-      id: `${product.id}-${selectedColor}-${selectedSize}`, // Create a unique ID
-      // selectedColor,
-      // selectedSize,
-    });
-  };
+    addItem(product, {
+      color: selectedColor,
+      size: selectedSize,
+    })
+
+    // Show confirmation message
+    setAddedToCart(true)
+
+    // Hide confirmation after 3 seconds
+    setTimeout(() => {
+      setAddedToCart(false)
+    }, 3000)
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="grid md:grid-cols-2 gap-8">
         <div className="aspect-square bg-gray-100">
-          <img
-            src={product.image}
-            alt={product.name}
-            className="w-full h-full object-cover"
-          />
+          <img src={product.image || "/placeholder.svg"} alt={product.name} className="w-full h-full object-cover" />
         </div>
 
         <div>
           <h1 className="text-3xl font-medium mb-2">{product.name}</h1>
           <p className="text-2xl mb-4">${product.price}</p>
 
-          {product.description && (
-            <p className="text-gray-600 mb-6">{product.description}</p>
-          )}
+          {product.description && <p className="text-gray-600 mb-6">{product.description}</p>}
 
           {product.colors && (
             <div className="mb-6">
@@ -96,8 +97,13 @@ export function ProductPage() {
           >
             Add to Cart
           </button>
+
+          {addedToCart && (
+            <div className="mt-4 p-3 bg-green-100 text-green-800 rounded-md">Item added to cart successfully!</div>
+          )}
         </div>
       </div>
     </div>
-  );
+  )
 }
+

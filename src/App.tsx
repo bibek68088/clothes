@@ -4,8 +4,8 @@ import { Footer } from "./components/Footer";
 import { HomePage } from "./pages/HomePage";
 import { ProductPage } from "./pages/ProductPage";
 import { CartPage } from "./pages/CartPage";
-import { LoginPage } from "./pages/user/Login";
-import { SignupPage } from "./pages/user/Signup";
+import LoginPage from "./pages/user/Login";
+import SignupPage from "./pages/user/Signup";
 import { MantineProvider } from "@mantine/core";
 
 function App() {
