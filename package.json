@@ -10,12 +10,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@apollo/client": "^3.13.5",
     "@emotion/react": "^11.14.0",
     "@headlessui/react": "^1.7.18",
     "@mantine/core": "^7.17.3",
     "@mantine/form": "^7.17.3",
     "@mantine/hooks": "^7.17.3",
+    "@paypal/react-paypal-js": "^8.8.2",
     "@tabler/icons-react": "^3.31.0",
+    "@tanstack/react-query": "^5.71.1",
     "antd": "^5.24.5",
     "clsx": "^2.1.0",
     "framer-motion": "^12.6.2",
@@ -23,10 +26,12 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.30.0",
+    "zod": "^3.24.2",
     "zustand": "^4.5.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
+    "@types/node": "^22.13.15",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",

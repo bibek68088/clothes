@@ -1,12 +1,17 @@
 import { useState } from "react"
-import { useParams } from "react-router-dom"
+import { useParams, useNavigate } from "react-router-dom"
 import { getProductById } from "../components/data/products"
 import { useCart } from "../store/useCart"
+import { useAuth } from "../store/useAuth"
+import { Button, Alert } from "@mantine/core"
+import { IconAlertCircle, IconShoppingCart } from "@tabler/icons-react"
 
 export function ProductPage() {
   const { id } = useParams()
   const product = getProductById(id || "")
   const { addItem } = useCart()
+  const { isAuthenticated } = useAuth()
+  const navigate = useNavigate()
 
   const [selectedColor, setSelectedColor] = useState<string | null>(null)
   const [selectedSize, setSelectedSize] = useState<string | null>(null)
@@ -17,6 +22,15 @@ export function ProductPage() {
   }
 
   const handleAddToCart = () => {
+    if (!isAuthenticated) {
+      // Redirect to login if not authenticated
+      navigate("/login", {
+        state: { from: `/product/${id}` },
+        replace: false,
+      })
+      return
+    }
+
     if (!selectedColor) {
       alert("Please select a color")
       return
@@ -54,6 +68,16 @@ export function ProductPage() {
 
           {product.description && <p className="text-gray-600 mb-6">{product.description}</p>}
 
+          {!isAuthenticated && (
+            <Alert icon={<IconAlertCircle size={16} />} color="blue" className="mb-6">
+              Please{" "}
+              <Button variant="subtle" onClick={() => navigate("/login")}>
+                sign in
+              </Button>{" "}
+              to add items to your cart.
+            </Alert>
+          )}
+
           {product.colors && (
             <div className="mb-6">
               <h2 className="font-medium mb-2">Colors</h2>
@@ -90,13 +114,14 @@ export function ProductPage() {
             </div>
           )}
 
-          <button
+          <Button
             onClick={handleAddToCart}
             className="w-full bg-black text-white py-3 rounded-full hover:bg-gray-800 transition"
-            disabled={!selectedColor || !selectedSize}
+            disabled={!isAuthenticated || !selectedColor || !selectedSize}
+            leftSection={<IconShoppingCart size={20} />}
           >
             Add to Cart
-          </button>
+          </Button>
 
           {addedToCart && (
             <div className="mt-4 p-3 bg-green-100 text-green-800 rounded-md">Item added to cart successfully!</div>
