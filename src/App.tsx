@@ -1,9 +1,6 @@
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
+// src/App.tsx
+import { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { HomePage } from "./pages/HomePage";
@@ -16,12 +13,23 @@ import { CheckoutPage } from "./pages/checkout/CheckoutPage";
 import { MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { AuthGuard } from "./components/auth/auth-guard";
+import { useAuth } from './store/useAuth';
+import { useCart } from './store/useCart';
 
 function App() {
+  const { isAuthenticated } = useAuth();
+  const { fetchCart } = useCart();
+  
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchCart();
+    }
+  }, [isAuthenticated, fetchCart]);
+  
   return (
     <MantineProvider
       theme={{
-        primaryColor: "blue",
+        primaryColor: 'blue',
       }}
     >
       <Router>
@@ -34,21 +42,21 @@ function App() {
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/product/:id" element={<ProductPage />} />
               <Route path="/cart" element={<CartPage />} />
-              <Route
-                path="/profile"
+              <Route 
+                path="/profile" 
                 element={
                   <AuthGuard>
                     <ProfilePage />
                   </AuthGuard>
-                }
+                } 
               />
-              <Route
-                path="/checkout"
+              <Route 
+                path="/checkout" 
                 element={
                   <AuthGuard>
                     <CheckoutPage />
                   </AuthGuard>
-                }
+                } 
               />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

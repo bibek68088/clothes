@@ -1,65 +1,87 @@
-import { useState } from "react"
-import { useParams, useNavigate } from "react-router-dom"
-import { getProductById } from "../components/data/products"
-import { useCart } from "../store/useCart"
-import { useAuth } from "../store/useAuth"
-import { Button, Alert } from "@mantine/core"
-import { IconAlertCircle, IconShoppingCart } from "@tabler/icons-react"
+// src/pages/ProductPage.tsx
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { getProductById } from '../services/productService';
+import { useCart } from '../store/useCart';
+import { useAuth } from '../store/useAuth';
+import { Button, Alert } from '@mantine/core';
+import { IconAlertCircle, IconShoppingCart } from '@tabler/icons-react';
 
 export function ProductPage() {
-  const { id } = useParams()
-  const product = getProductById(id || "")
-  const { addItem } = useCart()
-  const { isAuthenticated } = useAuth()
-  const navigate = useNavigate()
+  const { id } = useParams();
+  const { addItem } = useCart();
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  
+  const [product, setProduct] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [addedToCart, setAddedToCart] = useState(false);
 
-  const [selectedColor, setSelectedColor] = useState<string | null>(null)
-  const [selectedSize, setSelectedSize] = useState<string | null>(null)
-  const [addedToCart, setAddedToCart] = useState(false)
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const data = await getProductById(id || '');
+        setProduct(data);
+      } catch (err) {
+        setError('Failed to load product');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  if (!product) {
-    return <div>Product not found</div>
-  }
+    fetchProduct();
+  }, [id]);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!isAuthenticated) {
       // Redirect to login if not authenticated
-      navigate("/login", {
+      navigate('/login', {
         state: { from: `/product/${id}` },
         replace: false,
-      })
-      return
+      });
+      return;
     }
 
     if (!selectedColor) {
-      alert("Please select a color")
-      return
+      alert('Please select a color');
+      return;
     }
     if (!selectedSize) {
-      alert("Please select a size")
-      return
+      alert('Please select a size');
+      return;
     }
 
-    // Add the item to cart with selected color and size
-    addItem(product, {
-      color: selectedColor,
-      size: selectedSize,
-    })
+    try {
+      // Add the item to cart with selected color and size
+      await addItem(product, {
+        color: selectedColor,
+        size: selectedSize,
+      });
 
-    // Show confirmation message
-    setAddedToCart(true)
+      // Show confirmation message
+      setAddedToCart(true);
 
-    // Hide confirmation after 3 seconds
-    setTimeout(() => {
-      setAddedToCart(false)
-    }, 3000)
-  }
+      // Hide confirmation after 3 seconds
+      setTimeout(() => {
+        setAddedToCart(false);
+      }, 3000);
+    } catch (err) {
+      setError('Failed to add item to cart');
+    }
+  };
+
+  if (loading) return <div className="container mx-auto p-4">Loading...</div>;
+  if (error) return <div className="container mx-auto p-4">Error: {error}</div>;
+  if (!product) return <div className="container mx-auto p-4">Product not found</div>;
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="grid md:grid-cols-2 gap-8">
         <div className="aspect-square bg-gray-100">
-          <img src={product.image || "/placeholder.svg"} alt={product.name} className="w-full h-full object-cover" />
+          <img src={product.image_url || "/placeholder.svg"} alt={product.name} className="w-full h-full object-cover" />
         </div>
 
         <div>
@@ -71,18 +93,18 @@ export function ProductPage() {
           {!isAuthenticated && (
             <Alert icon={<IconAlertCircle size={16} />} color="blue" className="mb-6">
               Please{" "}
-              <Button variant="subtle" onClick={() => navigate("/login")}>
+              <Button variant="subtle" size="xs" onClick={() => navigate("/login")}>
                 sign in
               </Button>{" "}
               to add items to your cart.
             </Alert>
           )}
 
-          {product.colors && (
+          {product.colors && product.colors.length > 0 && (
             <div className="mb-6">
               <h2 className="font-medium mb-2">Colors</h2>
               <div className="flex gap-2">
-                {product.colors.map((color) => (
+                {product.colors.map((color: string) => (
                   <button
                     key={color}
                     onClick={() => setSelectedColor(color)}
@@ -96,11 +118,11 @@ export function ProductPage() {
             </div>
           )}
 
-          {product.sizes && (
+          {product.sizes && product.sizes.length > 0 && (
             <div className="mb-6">
               <h2 className="font-medium mb-2">Size</h2>
               <div className="flex gap-2">
-                {product.sizes.map((size) => (
+                {product.sizes.map((size: string) => (
                   <button
                     key={size}
                     onClick={() => setSelectedSize(size)}
@@ -129,6 +151,5 @@ export function ProductPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
-
