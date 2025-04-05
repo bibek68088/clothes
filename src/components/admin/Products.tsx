@@ -1,4 +1,3 @@
-import type React from "react";
 import { useState, useEffect } from "react";
 import {
   Container,
@@ -37,6 +36,13 @@ interface Category {
   name: string;
 }
 
+interface PaginationData {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 export function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -54,7 +60,7 @@ export function AdminProducts() {
     colors: [] as string[],
     sizes: [] as string[],
   });
-  const [pagination, setPagination] = useState({
+  const [pagination, setPagination] = useState<PaginationData>({
     total: 0,
     page: 1,
     limit: 10,
@@ -77,8 +83,19 @@ export function AdminProducts() {
         },
       });
 
-      setProducts(response.data.products);
-      setPagination(response.data.pagination);
+      setProducts(response.data.products || []);
+      
+      // Handle the pagination data safely
+      if (response.data.pagination) {
+        setPagination(response.data.pagination);
+      } else {
+        // If no pagination data is returned, use default values or current state
+        setPagination(prev => ({
+          ...prev,
+          total: response.data.total || prev.total,
+          totalPages: response.data.totalPages || Math.ceil((response.data.total || prev.total) / prev.limit),
+        }));
+      }
     } catch (error) {
       console.error("Error fetching products:", error);
     } finally {
@@ -89,7 +106,7 @@ export function AdminProducts() {
   const fetchCategories = async () => {
     try {
       const response = await api.get("/products/categories/all");
-      setCategories(response.data.categories);
+      setCategories(response.data.categories || []);
     } catch (error) {
       console.error("Error fetching categories:", error);
     }
@@ -182,6 +199,10 @@ export function AdminProducts() {
     }
   };
 
+  const handlePageChange = (page: number) => {
+    setPagination((prev) => ({ ...prev, page }));
+  };
+
   return (
     <AdminLayout>
       <Container size="xl" className="py-6">
@@ -226,7 +247,7 @@ export function AdminProducts() {
                 <td>${product.price.toFixed(2)}</td>
                 <td>{product.stock_quantity}</td>
                 <td>
-                  <Group fw={8}>
+                  <Group gap={8}>
                     <ActionIcon
                       color="blue"
                       onClick={() => openEditModal(product)}
@@ -258,7 +279,7 @@ export function AdminProducts() {
             <Pagination
               total={pagination.totalPages}
               value={pagination.page}
-              onChange={(page) => setPagination((prev) => ({ ...prev, page }))}
+              onChange={handlePageChange}
             />
           </div>
         )}
@@ -297,7 +318,7 @@ export function AdminProducts() {
                     typeof value === "number" ? value : 0
                   )
                 }
-                precision={2}
+                step={0.01}
                 min={0}
                 required
               />
@@ -340,7 +361,7 @@ export function AdminProducts() {
               onChange={(value) => handleMultiSelectChange("colors", value)}
               searchable
               creatable
-              getCreateLabel={(query) => `+ Add ${query}`}
+              getCreateLabel={(query: string) => `+ Add ${query}`}
               className="mb-3"
             />
 
@@ -364,7 +385,7 @@ export function AdminProducts() {
               onChange={(value) => handleMultiSelectChange("sizes", value)}
               searchable
               creatable
-              getCreateLabel={(query) => `+ Add ${query}`}
+              getCreateLabel={(query: string) => `+ Add ${query}`}
               className="mb-4"
             />
 
