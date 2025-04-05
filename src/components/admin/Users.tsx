@@ -1,7 +1,4 @@
-"use client"
-
-import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect } from "react";
 import {
   Container,
   Title,
@@ -14,135 +11,154 @@ import {
   Badge,
   Pagination,
   ActionIcon,
-} from "@mantine/core"
-import { Plus, Search, Edit, Trash } from "lucide-react"
-import { AdminLayout } from "./AdminLayout"
-import api from "../../services/api"
+} from "@mantine/core";
+import { Plus, Search, Edit, Trash } from "lucide-react";
+import { AdminLayout } from "./AdminLayout";
+import api from "../../services/api";
 
 interface User {
-  id: string
-  name: string
-  email: string
-  phone: string
-  role: string
-  created_at: string
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: string;
+  created_at: string;
+}
+
+interface PaginationData {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 
 export function AdminUsers() {
-  const [users, setUsers] = useState<User[]>([])
-  const [loading, setLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [modalOpen, setModalOpen] = useState(false)
-  const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     phone: "",
     role: "customer",
-  })
-  const [pagination, setPagination] = useState({
+  });
+  const [pagination, setPagination] = useState<PaginationData>({
     total: 0,
     page: 1,
     limit: 10,
     totalPages: 0,
-  })
+  });
 
   useEffect(() => {
-    fetchUsers()
-  }, [pagination.page, searchQuery])
+    fetchUsers();
+  }, [pagination.page, searchQuery]);
 
   const fetchUsers = async () => {
     try {
-      setLoading(true)
+      setLoading(true);
       const response = await api.get("/admin/users", {
-        params: {
-          page: pagination.page,
-          limit: pagination.limit,
-          search: searchQuery || undefined,
-        },
-      })
+        page: pagination.page,
+        limit: pagination.limit,
+        search: searchQuery || undefined,
+      });
 
-      setUsers(response.data.users)
-      setPagination(response.data.pagination)
+      // Check the structure of the response and handle it accordingly
+      if (response.data) {
+        // If users are directly in the response data
+        if (Array.isArray(response.data)) {
+          setUsers(response.data);
+        }
+        // If users are in a nested structure
+        else if (response.data.users) {
+          setUsers(response.data.users);
+
+          // Handle pagination data if it exists
+          if (response.data.pagination) {
+            setPagination(response.data.pagination);
+          }
+        }
+      }
     } catch (error) {
-      console.error("Error fetching users:", error)
+      console.error("Error fetching users:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    setPagination((prev) => ({ ...prev, page: 1 }))
-    fetchUsers()
-  }
+    e.preventDefault();
+    setPagination((prev) => ({ ...prev, page: 1 }));
+    fetchUsers();
+  };
 
   const openCreateModal = () => {
-    setCurrentUser(null)
+    setCurrentUser(null);
     setFormData({
       name: "",
       email: "",
       password: "",
       phone: "",
       role: "customer",
-    })
-    setModalOpen(true)
-  }
+    });
+    setModalOpen(true);
+  };
 
   const openEditModal = (user: User) => {
-    setCurrentUser(user)
+    setCurrentUser(user);
     setFormData({
       name: user.name,
       email: user.email,
       password: "",
       phone: user.phone || "",
       role: user.role,
-    })
-    setModalOpen(true)
-  }
+    });
+    setModalOpen(true);
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSelectChange = (name: string, value: string | null) => {
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     try {
       if (currentUser) {
         // Update existing user
-        const { password, ...updateData } = formData
-        await api.put(`/admin/users/${currentUser.id}`, updateData)
+        const { password, ...updateData } = formData;
+        await api.put(`/admin/users/${currentUser.id}`, updateData);
       } else {
         // Create new user
-        await api.post("/admin/users", formData)
+        await api.post("/admin/users", formData);
       }
 
-      setModalOpen(false)
-      fetchUsers()
+      setModalOpen(false);
+      fetchUsers();
     } catch (error) {
-      console.error("Error saving user:", error)
+      console.error("Error saving user:", error);
     }
-  }
+  };
 
   const handleDeleteUser = async (userId: string) => {
     if (!window.confirm("Are you sure you want to delete this user?")) {
-      return
+      return;
     }
 
     try {
-      await api.delete(`/admin/users/${userId}`)
-      fetchUsers()
+      await api.delete(`/admin/users/${userId}`);
+      fetchUsers();
     } catch (error) {
-      console.error("Error deleting user:", error)
+      console.error("Error deleting user:", error);
     }
-  }
+  };
 
   return (
     <AdminLayout>
@@ -181,15 +197,23 @@ export function AdminUsers() {
                 <td>{user.email}</td>
                 <td>{user.phone || "-"}</td>
                 <td>
-                  <Badge color={user.role === "admin" ? "blue" : "gray"}>{user.role}</Badge>
+                  <Badge color={user.role === "admin" ? "blue" : "gray"}>
+                    {user.role}
+                  </Badge>
                 </td>
                 <td>{new Date(user.created_at).toLocaleDateString()}</td>
                 <td>
                   <Group gap={8}>
-                    <ActionIcon color="blue" onClick={() => openEditModal(user)}>
+                    <ActionIcon
+                      color="blue"
+                      onClick={() => openEditModal(user)}
+                    >
                       <Edit size={16} />
                     </ActionIcon>
-                    <ActionIcon color="red" onClick={() => handleDeleteUser(user.id)}>
+                    <ActionIcon
+                      color="red"
+                      onClick={() => handleDeleteUser(user.id)}
+                    >
                       <Trash size={16} />
                     </ActionIcon>
                   </Group>
@@ -216,7 +240,11 @@ export function AdminUsers() {
           </div>
         )}
 
-        <Modal opened={modalOpen} onClose={() => setModalOpen(false)} title={currentUser ? "Edit User" : "Add User"}>
+        <Modal
+          opened={modalOpen}
+          onClose={() => setModalOpen(false)}
+          title={currentUser ? "Edit User" : "Add User"}
+        >
           <form onSubmit={handleSubmit}>
             <TextInput
               label="Name"
@@ -280,6 +308,5 @@ export function AdminUsers() {
         </Modal>
       </Container>
     </AdminLayout>
-  )
+  );
 }
-

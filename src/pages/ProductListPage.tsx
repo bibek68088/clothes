@@ -156,7 +156,7 @@ export function ProductListPage() {
 
       <Grid>
         {/* Filters sidebar */}
-        <Grid.Col span={12} md={3}>
+        <Grid.Col span={{ base: 12, md: 3 }}>
           <ProductFilters
             filters={filters}
             activeFilters={{
@@ -171,7 +171,7 @@ export function ProductListPage() {
         </Grid.Col>
 
         {/* Product grid */}
-        <Grid.Col span={12} md={9}>
+        <Grid.Col span={{ base: 12, md: 9 }}>
           <div className="mb-6 flex flex-col md:flex-row justify-between gap-4">
             <ProductSearch initialValue={currentSearch} onSearch={handleSearch} />
             <ProductSort value={currentSort} onChange={handleSortChange} />

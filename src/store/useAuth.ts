@@ -1,15 +1,13 @@
-// src/store/useAuth.tsx
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import api from '../services/api';
-import { useCart } from './useCart';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { useCart } from "./useCart";
 
+// Update the User interface to include the role property
 export interface User {
   id: string;
-  name: string;
   email: string;
-  phone?: string;
-  role: string;
+  name: string;
+  role?: string;
   address?: {
     street?: string;
     city?: string;
@@ -17,6 +15,7 @@ export interface User {
     zipCode?: string;
     country?: string;
   };
+  phone?: string;
 }
 
 interface AuthState {
@@ -26,11 +25,72 @@ interface AuthState {
   isLoading: boolean;
   error: string | null;
 
-  login: (email: string, password: string) => Promise<void>;
+  // Auth actions
+  login: (email: string, password: string) => Promise<void | User>;
   signup: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   updateProfile: (userData: Partial<User>) => Promise<void>;
 }
+
+// Update the mockLogin function to include the role
+const mockLogin = async (
+  email: string,
+  password: string
+): Promise<{ user: User; token: string }> => {
+  // Simulate API delay
+  await new Promise((resolve) => setTimeout(resolve, 500));
+
+  // In a real app, this would be an API call to your backend
+  if (email === "test@example.com" && password === "password123") {
+    return {
+      user: {
+        id: "1",
+        email: "test@example.com",
+        name: "Test User",
+        role: "admin", // Ensure the admin role is included
+      },
+      token: "mock-jwt-token",
+    };
+  }
+
+  throw new Error("Invalid credentials");
+};
+
+const mockSignup = async (
+  name: string,
+  email: string,
+  password: string
+): Promise<{ user: User; token: string }> => {
+  // Simulate API delay
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  // In a real app, this would be an API call to your backend
+  return {
+    user: {
+      id: Date.now().toString(),
+      email,
+      name,
+    },
+    token: "mock-jwt-token",
+  };
+};
+
+const mockUpdateProfile = async (
+  userId: string,
+  userData: Partial<User>
+): Promise<User> => {
+  // Simulate API delay
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  // In a real app, this would be an API call to your backend
+  return {
+    id: userId,
+    email: userData.email || "test@example.com",
+    name: userData.name || "Test User",
+    address: userData.address,
+    phone: userData.phone,
+  };
+};
 
 export const useAuth = create<AuthState>()(
   persist(
@@ -45,32 +105,22 @@ export const useAuth = create<AuthState>()(
         set({ isLoading: true, error: null });
 
         try {
-          const response = await api.post('/auth/login', { email, password });
-          const { user, token } = response.data;
-          
+          const { user, token } = await mockLogin(email, password);
           set({
             user,
             token,
             isAuthenticated: true,
             isLoading: false,
           });
-          
-          // Store token in localStorage for API interceptor
-          localStorage.setItem('token', token);
-          
-          // Fetch user's cart from server
-          // (Optional: Add logic to fetch and handle the user's cart here if needed)
-          
-          // Fetch user's cart from server
-          try {
-            await api.get('/cart');
-          } catch (error) {
-            console.error('Error fetching cart:', error);
-          }
+
+          // Load user's cart from server (in a real app)
+          // For now, we'll keep the cart as is
+
+          return user; // Return the user object so we can check the role
         } catch (error) {
           set({
             isLoading: false,
-            error: (error as any).response?.data?.message || 'Login failed',
+            error: error instanceof Error ? error.message : "Login failed",
           });
           throw error;
         }
@@ -80,31 +130,23 @@ export const useAuth = create<AuthState>()(
         set({ isLoading: true, error: null });
 
         try {
-          const response = await api.post('/auth/register', { name, email, password });
-          const { user, token } = response.data;
-          
+          const { user, token } = await mockSignup(name, email, password);
           set({
             user,
             token,
             isAuthenticated: true,
             isLoading: false,
           });
-          
-          // Store token in localStorage for API interceptor
-          localStorage.setItem('token', token);
         } catch (error) {
           set({
             isLoading: false,
-            error: (error as any).response?.data?.message || 'Signup failed',
+            error: error instanceof Error ? error.message : "Signup failed",
           });
           throw error;
         }
       },
 
       logout: () => {
-        // Remove token from localStorage
-        localStorage.removeItem('token');
-        
         set({
           user: null,
           token: null,
@@ -120,29 +162,29 @@ export const useAuth = create<AuthState>()(
         const { user } = get();
 
         if (!user) {
-          throw new Error('User not authenticated');
+          throw new Error("User not authenticated");
         }
 
         set({ isLoading: true, error: null });
 
         try {
-          const response = await api.put('/auth/profile', userData);
-          
+          const updatedUser = await mockUpdateProfile(user.id, userData);
           set({
-            user: response.data.user,
+            user: updatedUser,
             isLoading: false,
           });
         } catch (error) {
           set({
             isLoading: false,
-            error: (error as any).response?.data?.message || 'Profile update failed',
+            error:
+              error instanceof Error ? error.message : "Profile update failed",
           });
           throw error;
         }
       },
     }),
     {
-      name: 'auth-storage',
+      name: "auth-storage",
       // Only persist non-sensitive data
       partialize: (state) => ({
         user: state.user,

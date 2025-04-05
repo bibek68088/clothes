@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, memo } from "react";
 import { Eye, ShoppingCart, Minus, Plus, ChevronRight } from "lucide-react";
 import { Modal } from "antd";
 import { useNavigate } from "react-router-dom";
@@ -22,6 +22,7 @@ interface NewArrivalsProps {
   onProductClick?: (product: Product) => void;
 }
 
+// Mock data - ideally this would be moved to a separate file or fetched from an API
 const products: Product[] = [
   {
     id: "1",
@@ -65,15 +66,94 @@ const products: Product[] = [
   },
 ];
 
+// Memoized product card component to prevent unnecessary re-renders
+const ProductCard = memo(({ 
+  product, 
+  isHovered, 
+  onMouseEnter, 
+  onMouseLeave, 
+  onProductClick, 
+  onQuickViewClick 
+}: { 
+  product: Product, 
+  isHovered: boolean, 
+  onMouseEnter: () => void, 
+  onMouseLeave: () => void, 
+  onProductClick: () => void, 
+  onQuickViewClick: (e: React.MouseEvent) => void 
+}) => {
+  return (
+    <div
+      className="group relative"
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
+      <div
+        className="relative aspect-[3/4] bg-gray-50 mb-4 overflow-hidden cursor-pointer"
+        onClick={onProductClick}
+      >
+        {product.discount && (
+          <span className="absolute top-2 right-2 bg-black text-white text-xs px-2 py-1">
+            -{product.discount}%
+          </span>
+        )}
+        <img
+          src={product.image}
+          alt={product.name}
+          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          loading="lazy"
+        />
+
+        {isHovered && (
+          <div
+            className="absolute h-14 bottom-0 left-0 right-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            onClick={onQuickViewClick}
+          >
+            <Eye className="text-white w-6 h-6 cursor-pointer" />
+          </div>
+        )}
+      </div>
+      <h3 className="font-medium mb-1">{product.name}</h3>
+      <div className="flex items-center gap-2">
+        {product.originalPrice ? (
+          <>
+            <span className="text-gray-600 line-through text-sm">
+              ${product.originalPrice.toFixed(2)}
+            </span>
+            <span className="text-black">
+              ${product.price.toFixed(2)}
+            </span>
+          </>
+        ) : (
+          <span className="text-gray-600">
+            ${product.price.toFixed(2)}
+          </span>
+        )}
+      </div>
+      {product.colors && (
+        <div className="flex gap-1 mt-2">
+          {product.colors.map((color) => (
+            <div
+              key={color}
+              className="w-4 h-4 rounded-full border border-gray-200"
+              style={{ backgroundColor: color }}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+});
+
+ProductCard.displayName = 'ProductCard';
+
 export function NewArrivals({ onProductClick }: NewArrivalsProps) {
   const navigate = useNavigate();
   const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
-  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(
-    null
-  );
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = useCallback(() => {
     // Placeholder for add to cart logic
     console.log(
       "Added to cart:",
@@ -81,9 +161,11 @@ export function NewArrivals({ onProductClick }: NewArrivalsProps) {
       "Quantity:",
       quantity
     );
-  };
+    // Close modal after adding to cart
+    setQuickViewProduct(null);
+  }, [quickViewProduct, quantity]);
 
-  const handleProductPageNavigation = (product: Product) => {
+  const handleProductPageNavigation = useCallback((product: Product) => {
     // First, check if a custom onProductClick handler is provided
     if (onProductClick) {
       onProductClick(product);
@@ -91,7 +173,20 @@ export function NewArrivals({ onProductClick }: NewArrivalsProps) {
       // Default navigation or logging
       navigate(`/product/${product.id}`);
     }
-  };
+  }, [onProductClick, navigate]);
+
+  const handleDecreaseQuantity = useCallback(() => {
+    setQuantity(prev => Math.max(1, prev - 1));
+  }, []);
+
+  const handleIncreaseQuantity = useCallback(() => {
+    setQuantity(prev => prev + 1);
+  }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setQuickViewProduct(null);
+    setQuantity(1);
+  }, []);
 
   return (
     <div className="py-8 md:py-16">
@@ -114,68 +209,19 @@ export function NewArrivals({ onProductClick }: NewArrivalsProps) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8 w-full">
             {products.map((product) => (
-              <div
+              <ProductCard
                 key={product.id}
-                className="group relative"
+                product={product}
+                isHovered={hoveredProduct === product.id}
                 onMouseEnter={() => setHoveredProduct(product.id)}
                 onMouseLeave={() => setHoveredProduct(null)}
-              >
-                <div
-                  className="relative aspect-[3/4] bg-gray-50 mb-4 overflow-hidden cursor-pointer"
-                  onClick={() => handleProductPageNavigation(product)}
-                >
-                  {product.discount && (
-                    <span className="absolute top-2 right-2 bg-black text-white text-xs px-2 py-1">
-                      -{product.discount}%
-                    </span>
-                  )}
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-
-                  {hoveredProduct === product.id && (
-                    <div
-                      className="absolute h-14 bottom-0 left-0 right-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                      onClick={(e) => {
-                        e.stopPropagation(); // Prevent product page navigation
-                        setQuickViewProduct(product);
-                        setQuantity(1);
-                      }}
-                    >
-                      <Eye className="text-white w-6 h-6 cursor-pointer" />
-                    </div>
-                  )}
-                </div>
-                <h3 className="font-medium mb-1">{product.name}</h3>
-                <div className="flex items-center gap-2">
-                  {product.originalPrice ? (
-                    <>
-                      <span className="text-gray-600 line-through text-sm">
-                        ${product.originalPrice.toFixed(2)}
-                      </span>
-                      <span className="text-black">
-                        ${product.price.toFixed(2)}
-                      </span>
-                    </>
-                  ) : (
-                    <span className="text-gray-600">
-                      ${product.price.toFixed(2)}
-                    </span>
-                  )}
-                </div>
-                {product.colors && (
-                  <div className="flex gap-1 mt-2">
-                    {product.colors.map((color) => (
-                      <div
-                        key={color}
-                        className={`w-4 h-4 rounded-full bg-${color}-500 border border-gray-200`}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
+                onProductClick={() => handleProductPageNavigation(product)}
+                onQuickViewClick={(e) => {
+                  e.stopPropagation(); // Prevent product page navigation
+                  setQuickViewProduct(product);
+                  setQuantity(1);
+                }}
+              />
             ))}
           </div>
         </div>
@@ -183,14 +229,14 @@ export function NewArrivals({ onProductClick }: NewArrivalsProps) {
         {/* Quick View Modal using Ant Design */}
         <Modal
           open={!!quickViewProduct}
-          onCancel={() => setQuickViewProduct(null)}
+          onCancel={handleCloseModal}
           footer={null}
           width={1000}
           closeIcon={
             <div className="text-2xl font-light cursor-pointer">&times;</div>
           }
           style={{ top: 20 }}
-          bodyStyle={{ padding: 0 }}
+          styles={{ body: { padding: 0 } }}
         >
           {quickViewProduct && (
             <div className="flex flex-col md:flex-row">
@@ -236,14 +282,14 @@ export function NewArrivals({ onProductClick }: NewArrivalsProps) {
                     <div className="flex items-center border border-gray-300">
                       <button
                         className="p-2 hover:bg-gray-100"
-                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        onClick={handleDecreaseQuantity}
                       >
                         <Minus className="w-4 h-4" />
                       </button>
                       <span className="px-4">{quantity}</span>
                       <button
                         className="p-2 hover:bg-gray-100"
-                        onClick={() => setQuantity(quantity + 1)}
+                        onClick={handleIncreaseQuantity}
                       >
                         <Plus className="w-4 h-4" />
                       </button>
@@ -269,4 +315,4 @@ export function NewArrivals({ onProductClick }: NewArrivalsProps) {
   );
 }
 
-export default NewArrivals;
+export default memo(NewArrivals);

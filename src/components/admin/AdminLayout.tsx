@@ -1,4 +1,4 @@
-import type React from "react";
+import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   AppShell,
@@ -14,19 +14,21 @@ import {
   Package,
   ShoppingCart,
   LogOut,
-  Settings,
   ChevronRight,
 } from "lucide-react";
 import { useAuth } from "../../store/useAuth";
 
-interface AdminLayoutProps {
-  children: React.ReactNode;
-}
-
-export function AdminLayout({ children }: AdminLayoutProps) {
+export function AdminLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
+
+  // Redirect if not admin
+  React.useEffect(() => {
+    if (user && user.role !== "admin") {
+      navigate("/");
+    }
+  }, [user, navigate]);
 
   const handleLogout = () => {
     logout();
@@ -42,13 +44,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { icon: Users, label: "Users", path: "/admin/users" },
     { icon: Package, label: "Products", path: "/admin/products" },
     { icon: ShoppingCart, label: "Orders", path: "/admin/orders" },
-    { icon: Settings, label: "Settings", path: "/admin/settings" },
   ];
 
   return (
     <AppShell
       padding="md"
-      layout="default"
       navbar={{
         width: 250,
         breakpoint: "sm",
@@ -72,57 +72,55 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       </AppShell.Header>
 
       <AppShell.Navbar p="xs">
-        <AppShell.Section grow>
-          {menuItems.map((item) => (
-            <Link
-              to={item.path}
-              key={item.path}
-              className="no-underline text-inherit"
-            >
-              <UnstyledButton
-                className={`w-full p-2 rounded-md mb-2 hover:bg-gray-100 ${
-                  isActive(item.path) ? "bg-blue-50 text-blue-600" : ""
-                }`}
+        <div className="flex flex-col h-full">
+          <div className="flex-grow">
+            {menuItems.map((item) => (
+              <Link
+                to={item.path}
+                key={item.path}
+                className="no-underline text-inherit"
               >
-                <Group>
-                  <ThemeIcon
-                    variant="light"
-                    size={30}
-                    color={isActive(item.path) ? "blue" : "gray"}
-                  >
-                    <item.icon size={18} />
-                  </ThemeIcon>
-                  <Text size="sm">{item.label}</Text>
-                  {isActive(item.path) && (
-                    <ChevronRight size={16} className="ml-auto" />
-                  )}
-                </Group>
-              </UnstyledButton>
-            </Link>
-          ))}
-        </AppShell.Section>
+                <UnstyledButton
+                  className={`w-full p-2 rounded-md mb-2 hover:bg-gray-100 ${
+                    isActive(item.path) ? "bg-blue-50 text-blue-600" : ""
+                  }`}
+                >
+                  <Group>
+                    <ThemeIcon
+                      variant="light"
+                      size={30}
+                      color={isActive(item.path) ? "blue" : "gray"}
+                    >
+                      <item.icon size={18} />
+                    </ThemeIcon>
+                    <Text size="sm">{item.label}</Text>
+                    {isActive(item.path) && (
+                      <ChevronRight size={16} className="ml-auto" />
+                    )}
+                  </Group>
+                </UnstyledButton>
+              </Link>
+            ))}
+          </div>
 
-        <AppShell.Section>
-          <Separator />
-          <UnstyledButton
-            className="w-full p-2 rounded-md hover:bg-gray-100 text-red-600"
-            onClick={handleLogout}
-          >
-            <Group>
-              <ThemeIcon variant="light" size={30} color="red">
-                <LogOut size={18} />
-              </ThemeIcon>
-              <Text size="sm">Logout</Text>
-            </Group>
-          </UnstyledButton>
-        </AppShell.Section>
+          <div>
+            <div className="my-2 border-t border-gray-200"></div>
+            <UnstyledButton
+              className="w-full p-2 rounded-md hover:bg-gray-100 text-red-600"
+              onClick={handleLogout}
+            >
+              <Group>
+                <ThemeIcon variant="light" size={30} color="red">
+                  <LogOut size={18} />
+                </ThemeIcon>
+                <Text size="sm">Logout</Text>
+              </Group>
+            </UnstyledButton>
+          </div>
+        </div>
       </AppShell.Navbar>
 
       <AppShell.Main>{children}</AppShell.Main>
     </AppShell>
   );
-}
-
-function Separator() {
-  return <div className="my-2 border-t border-gray-200" />;
 }
