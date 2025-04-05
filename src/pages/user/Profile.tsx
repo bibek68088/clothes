@@ -28,7 +28,7 @@ import {
 } from "@tabler/icons-react";
 import { useAuth } from "../../store/useAuth";
 import { Link } from "react-router-dom";
-
+import { EmailPreferences, EmailPreferencesProps } from "../../components/profile/EmailPreferences";
 export default function ProfilePage() {
   const { user, updateProfile, isLoading, logout } = useAuth();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -37,7 +37,14 @@ export default function ProfilePage() {
   const [email, setEmail] = useState(user?.email || "");
   const [phone, setPhone] = useState(user?.phone || "");
   const [street, setStreet] = useState(user?.address?.street || "");
+  const initialEmailPreferences = {
+    orderConfirmation: true,
+    orderStatusUpdates: true,
+    promotions: false,
+    newsletter: false,
+  };
   const [city, setCity] = useState(user?.address?.city || "");
+  const [emailPreferences, setEmailPreferences] = useState<EmailPreferencesProps['initialPreferences']>(initialEmailPreferences);
   const [state, setState] = useState(user?.address?.state || "");
   const [zipCode, setZipCode] = useState(user?.address?.zipCode || "");
   const [country, setCountry] = useState(user?.address?.country || "");
@@ -121,6 +128,12 @@ export default function ProfilePage() {
                   <Title order={4} className="font-semibold text-center">
                     {name || "Welcome"}
                   </Title>
+                  <div className="mt-6">
+                    <EmailPreferences
+                      initialPreferences={emailPreferences}
+                      onUpdate={setEmailPreferences}
+                    />
+                  </div>
                   <Text
                     size="sm"
                     className="text-gray-600 text-center truncate w-full"

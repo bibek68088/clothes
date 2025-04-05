@@ -12,7 +12,7 @@ import { useAuth } from "../store/useAuth";
 import { useState } from "react";
 
 export function Header() {
-  const cartItems = useCart((state) => state.items);
+  const cartItems = useCart((state) => state.items) || []; // Add fallback empty array
   const { isAuthenticated, user, logout } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const navigate = useNavigate();
@@ -97,6 +97,16 @@ export function Header() {
                         <Package className="w-4 h-4 mr-2" />
                         Orders
                       </Link>
+                      {user?.role === "admin" && (
+                        <Link
+                          to="/admin"
+                          className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors"
+                          onClick={() => setIsDropdownOpen(false)}
+                        >
+                          <Settings className="w-4 h-4 mr-2" />
+                          Admin Dashboard
+                        </Link>
+                      )}
                       <button
                         onClick={handleLogout}
                         className="flex items-center w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100 transition-colors"
@@ -132,7 +142,7 @@ export function Header() {
               className="p-2 hover:bg-gray-100 rounded-full relative"
             >
               <ShoppingBag className="w-5 h-5" />
-              {cartItems.length > 0 && (
+              {cartItems && cartItems.length > 0 && (
                 <span className="absolute -top-1 -right-1 bg-black text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
                   {cartItems.length}
                 </span>
