@@ -1,6 +1,11 @@
 // src/App.tsx
-import { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { useEffect } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { HomePage } from "./pages/HomePage";
@@ -13,23 +18,28 @@ import { CheckoutPage } from "./pages/checkout/CheckoutPage";
 import { MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { AuthGuard } from "./components/auth/auth-guard";
-import { useAuth } from './store/useAuth';
-import { useCart } from './store/useCart';
+import { useAuth } from "./store/useAuth";
+import { useCart } from "./store/useCart";
+import { AdminDashboard } from "./components/admin/Dashboard";
+import { WishlistPage } from "./pages/WishlistPage";
+import { AdminUsers } from "./components/admin/Users";
+import { AdminProducts } from "./components/admin/Products";
+import { AdminOrders } from "./components/admin/Orders";
 
 function App() {
   const { isAuthenticated } = useAuth();
   const { fetchCart } = useCart();
-  
+
   useEffect(() => {
     if (isAuthenticated) {
       fetchCart();
     }
   }, [isAuthenticated, fetchCart]);
-  
+
   return (
     <MantineProvider
       theme={{
-        primaryColor: 'blue',
+        primaryColor: "blue",
       }}
     >
       <Router>
@@ -37,26 +47,66 @@ function App() {
           <Header />
           <main className="flex-grow">
             <Routes>
+              <Route
+                path="/admin"
+                element={
+                  <AuthGuard>
+                    <AdminDashboard />
+                  </AuthGuard>
+                }
+              />
+              <Route
+                path="/admin/users"
+                element={
+                  <AuthGuard>
+                    <AdminUsers />
+                  </AuthGuard>
+                }
+              />
+              <Route
+                path="/admin/products"
+                element={
+                  <AuthGuard>
+                    <AdminProducts />
+                  </AuthGuard>
+                }
+              />
+              <Route
+                path="/admin/orders"
+                element={
+                  <AuthGuard>
+                    <AdminOrders />
+                  </AuthGuard>
+                }
+              />
+              <Route
+                path="/wishlist"
+                element={
+                  <AuthGuard>
+                    <WishlistPage />
+                  </AuthGuard>
+                }
+              />
               <Route path="/" element={<HomePage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/product/:id" element={<ProductPage />} />
               <Route path="/cart" element={<CartPage />} />
-              <Route 
-                path="/profile" 
+              <Route
+                path="/profile"
                 element={
                   <AuthGuard>
                     <ProfilePage />
                   </AuthGuard>
-                } 
+                }
               />
-              <Route 
-                path="/checkout" 
+              <Route
+                path="/checkout"
                 element={
                   <AuthGuard>
                     <CheckoutPage />
                   </AuthGuard>
-                } 
+                }
               />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

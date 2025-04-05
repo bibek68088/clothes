@@ -10,6 +10,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../store/useCart";
 import { useAuth } from "../store/useAuth";
 import { useState } from "react";
+import { Heart } from "lucide-react";
 
 export function Header() {
   const cartItems = useCart((state) => state.items);
@@ -53,6 +54,12 @@ export function Header() {
             </Link>
             <Link to="/featured" className="text-gray-600 hover:text-black">
               Featured
+            </Link>
+            <Link
+              to="/wishlist"
+              className="p-2 hover:bg-gray-100 rounded-full relative"
+            >
+              <Heart className="w-5 h-5" />
             </Link>
           </nav>
 

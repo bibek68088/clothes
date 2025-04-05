@@ -1,18 +1,18 @@
 // src/pages/ProductPage.tsx
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { getProductById } from '../services/productService';
-import { useCart } from '../store/useCart';
-import { useAuth } from '../store/useAuth';
-import { Button, Alert } from '@mantine/core';
-import { IconAlertCircle, IconShoppingCart } from '@tabler/icons-react';
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { getProductById } from "../services/productService";
+import { useCart } from "../store/useCart";
+import { useAuth } from "../store/useAuth";
+import { Button, Alert } from "@mantine/core";
+import { WishlistButton } from "../components/wishlist/WishlistButton";
+import { IconAlertCircle, IconShoppingCart } from "@tabler/icons-react";
 
 export function ProductPage() {
   const { id } = useParams();
   const { addItem } = useCart();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,10 +23,10 @@ export function ProductPage() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const data = await getProductById(id || '');
+        const data = await getProductById(id || "");
         setProduct(data);
       } catch (err) {
-        setError('Failed to load product');
+        setError("Failed to load product");
       } finally {
         setLoading(false);
       }
@@ -38,7 +38,7 @@ export function ProductPage() {
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
       // Redirect to login if not authenticated
-      navigate('/login', {
+      navigate("/login", {
         state: { from: `/product/${id}` },
         replace: false,
       });
@@ -46,11 +46,11 @@ export function ProductPage() {
     }
 
     if (!selectedColor) {
-      alert('Please select a color');
+      alert("Please select a color");
       return;
     }
     if (!selectedSize) {
-      alert('Please select a size');
+      alert("Please select a size");
       return;
     }
 
@@ -69,31 +69,46 @@ export function ProductPage() {
         setAddedToCart(false);
       }, 3000);
     } catch (err) {
-      setError('Failed to add item to cart');
+      setError("Failed to add item to cart");
     }
   };
 
   if (loading) return <div className="container mx-auto p-4">Loading...</div>;
   if (error) return <div className="container mx-auto p-4">Error: {error}</div>;
-  if (!product) return <div className="container mx-auto p-4">Product not found</div>;
+  if (!product)
+    return <div className="container mx-auto p-4">Product not found</div>;
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="grid md:grid-cols-2 gap-8">
         <div className="aspect-square bg-gray-100">
-          <img src={product.image_url || "/placeholder.svg"} alt={product.name} className="w-full h-full object-cover" />
+          <img
+            src={product.image_url || "/placeholder.svg"}
+            alt={product.name}
+            className="w-full h-full object-cover"
+          />
         </div>
 
         <div>
           <h1 className="text-3xl font-medium mb-2">{product.name}</h1>
           <p className="text-2xl mb-4">${product.price}</p>
 
-          {product.description && <p className="text-gray-600 mb-6">{product.description}</p>}
+          {product.description && (
+            <p className="text-gray-600 mb-6">{product.description}</p>
+          )}
 
           {!isAuthenticated && (
-            <Alert icon={<IconAlertCircle size={16} />} color="blue" className="mb-6">
+            <Alert
+              icon={<IconAlertCircle size={16} />}
+              color="blue"
+              className="mb-6"
+            >
               Please{" "}
-              <Button variant="subtle" size="xs" onClick={() => navigate("/login")}>
+              <Button
+                variant="subtle"
+                size="xs"
+                onClick={() => navigate("/login")}
+              >
                 sign in
               </Button>{" "}
               to add items to your cart.
@@ -144,9 +159,12 @@ export function ProductPage() {
           >
             Add to Cart
           </Button>
+          <WishlistButton productId={product.id} className="p-2" />
 
           {addedToCart && (
-            <div className="mt-4 p-3 bg-green-100 text-green-800 rounded-md">Item added to cart successfully!</div>
+            <div className="mt-4 p-3 bg-green-100 text-green-800 rounded-md">
+              Item added to cart successfully!
+            </div>
           )}
         </div>
       </div>
