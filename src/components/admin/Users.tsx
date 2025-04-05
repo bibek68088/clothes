@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from "react"
 import {
   Container,
   Title,
@@ -11,302 +11,679 @@ import {
   Badge,
   Pagination,
   ActionIcon,
-} from "@mantine/core";
-import { Plus, Search, Edit, Trash } from "lucide-react";
-import { AdminLayout } from "./AdminLayout";
-import api from "../../services/api";
+  Box,
+  Paper,
+  Text,
+  Loader,
+  Transition,
+  Divider,
+  Avatar,
+  Tooltip,
+  useMantineTheme,
+} from "@mantine/core"
+import { useDisclosure } from "@mantine/hooks"
+import { notifications } from "@mantine/notifications"
+import { Plus, Search, Edit, Trash, Eye, User, Shield, Check, X, RefreshCw, Filter, ChevronDown } from "lucide-react"
+import { motion } from "framer-motion"
+import { AdminLayout } from "../../components/admin/AdminLayout"
+import api from "../../services/api"
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  role: string;
-  created_at: string;
+interface UserInterface {
+  id: string
+  name: string
+  email: string
+  phone: string
+  role: string
+  created_at: string
 }
 
 interface PaginationData {
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
+  total: number
+  page: number
+  limit: number
+  totalPages: number
 }
 
+const MotionPaper = motion(Paper as any)
+
 export function AdminUsers() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [modalOpen, setModalOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const theme = useMantineTheme()
+  const [users, setUsers] = useState<UserInterface[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [modalOpen, setModalOpen] = useState(false)
+  const [currentUser, setCurrentUser] = useState<UserInterface | null>(null)
+  const [refreshing, setRefreshing] = useState(false)
+  const [viewMode, setViewMode] = useState<"table" | "grid">("table")
+  const [showFilters, { toggle: toggleFilters }] = useDisclosure(false)
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     phone: "",
     role: "customer",
-  });
+  })
   const [pagination, setPagination] = useState<PaginationData>({
     total: 0,
     page: 1,
     limit: 10,
     totalPages: 0,
-  });
+  })
+  const [roleFilter, setRoleFilter] = useState<string | null>(null)
+
+  // Animation variants for list items
+  const listItemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: (i: number) => ({
+      opacity: 1,
+      y: 0,
+      transition: {
+        delay: i * 0.05,
+        duration: 0.3,
+        ease: "easeOut",
+      },
+    }),
+  }
 
   useEffect(() => {
-    fetchUsers();
-  }, [pagination.page, searchQuery]);
+    fetchUsers()
+  }, [pagination.page, searchQuery, roleFilter])
 
   const fetchUsers = async () => {
     try {
-      setLoading(true);
+      setLoading(true)
       const response = await api.get("/admin/users", {
-        page: pagination.page,
-        limit: pagination.limit,
-        search: searchQuery || undefined,
-      });
+        params: {
+          page: pagination.page,
+          limit: pagination.limit,
+          search: searchQuery || undefined,
+          role: roleFilter || undefined,
+        },
+      })
 
-      // Check the structure of the response and handle it accordingly
       if (response.data) {
-        // If users are directly in the response data
         if (Array.isArray(response.data)) {
-          setUsers(response.data);
-        }
-        // If users are in a nested structure
-        else if (response.data.users) {
-          setUsers(response.data.users);
+          setUsers(response.data)
+        } else if (response.data.users) {
+          setUsers(response.data.users)
 
-          // Handle pagination data if it exists
           if (response.data.pagination) {
-            setPagination(response.data.pagination);
+            setPagination(response.data.pagination)
           }
         }
       }
     } catch (error) {
-      console.error("Error fetching users:", error);
+      console.error("Error fetching users:", error)
+      notifications.show({
+        title: "Error",
+        message: "Failed to fetch users. Please try again.",
+        color: "red",
+        icon: <X size={16} />,
+      })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
+
+  const refreshData = async () => {
+    setRefreshing(true)
+    await fetchUsers()
+    setRefreshing(false)
+    notifications.show({
+      title: "Success",
+      message: "User data refreshed successfully",
+      color: "green",
+      icon: <Check size={16} />,
+    })
+  }
 
   const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPagination((prev) => ({ ...prev, page: 1 }));
-    fetchUsers();
-  };
+    e.preventDefault()
+    setPagination((prev) => ({ ...prev, page: 1 }))
+    fetchUsers()
+  }
 
   const openCreateModal = () => {
-    setCurrentUser(null);
+    setCurrentUser(null)
     setFormData({
       name: "",
       email: "",
       password: "",
       phone: "",
       role: "customer",
-    });
-    setModalOpen(true);
-  };
+    })
+    setModalOpen(true)
+  }
 
-  const openEditModal = (user: User) => {
-    setCurrentUser(user);
+  const openEditModal = (user: UserInterface) => {
+    setCurrentUser(user)
     setFormData({
       name: user.name,
       email: user.email,
       password: "",
       phone: user.phone || "",
       role: user.role,
-    });
-    setModalOpen(true);
-  };
+    })
+    setModalOpen(true)
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
 
   const handleSelectChange = (name: string, value: string | null) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
     try {
       if (currentUser) {
         // Update existing user
-        const { password, ...updateData } = formData;
-        await api.put(`/admin/users/${currentUser.id}`, updateData);
+        const { password, ...updateData } = formData
+        await api.put(`/admin/users/${currentUser.id}`, updateData)
+        notifications.show({
+          title: "Success",
+          message: `User ${formData.name} updated successfully`,
+          color: "green",
+          icon: <Check size={16} />,
+        })
       } else {
         // Create new user
-        await api.post("/admin/users", formData);
+        await api.post("/admin/users", formData)
+        notifications.show({
+          title: "Success",
+          message: `User ${formData.name} created successfully`,
+          color: "green",
+          icon: <Check size={16} />,
+        })
       }
 
-      setModalOpen(false);
-      fetchUsers();
+      setModalOpen(false)
+      fetchUsers()
     } catch (error) {
-      console.error("Error saving user:", error);
+      console.error("Error saving user:", error)
+      notifications.show({
+        title: "Error",
+        message: "Failed to save user. Please try again.",
+        color: "red",
+        icon: <X size={16} />,
+      })
     }
-  };
+  }
 
-  const handleDeleteUser = async (userId: string) => {
-    if (!window.confirm("Are you sure you want to delete this user?")) {
-      return;
+  const handleDeleteUser = async (userId: string, userName: string) => {
+    if (!window.confirm(`Are you sure you want to delete ${userName}?`)) {
+      return
     }
 
     try {
-      await api.delete(`/admin/users/${userId}`);
-      fetchUsers();
+      await api.delete(`/admin/users/${userId}`)
+      fetchUsers()
+      notifications.show({
+        title: "Success",
+        message: `User ${userName} deleted successfully`,
+        color: "green",
+        icon: <Check size={16} />,
+      })
     } catch (error) {
-      console.error("Error deleting user:", error);
+      console.error("Error deleting user:", error)
+      notifications.show({
+        title: "Error",
+        message: "Failed to delete user. Please try again.",
+        color: "red",
+        icon: <X size={16} />,
+      })
     }
-  };
+  }
+
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2)
+  }
+
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case "admin":
+        return "blue"
+      case "manager":
+        return "green"
+      case "support":
+        return "yellow"
+      default:
+        return "gray"
+    }
+  }
+
+  const renderTableView = () => (
+    <Paper shadow="sm" radius="md" p="md" withBorder>
+      <Table striped highlightOnHover>
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th>User</Table.Th>
+            <Table.Th>Email</Table.Th>
+            <Table.Th>Phone</Table.Th>
+            <Table.Th>Role</Table.Th>
+            <Table.Th>Created</Table.Th>
+            <Table.Th>Actions</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {users.length === 0 && !loading ? (
+            <Table.Tr>
+              <Table.Td colSpan={6}>
+                <Text ta="center" py="lg" c="dimmed">
+                  No users found. Try adjusting your search criteria.
+                </Text>
+              </Table.Td>
+            </Table.Tr>
+          ) : (
+            users.map((user, index) => (
+              <motion.tr key={user.id} custom={index} initial="hidden" animate="visible" variants={listItemVariants}>
+                <Table.Td>
+                  <Group gap="sm">
+                    <Avatar color={theme.primaryColor} radius="xl">
+                      {getInitials(user.name)}
+                    </Avatar>
+                    <Text fw={500}>{user.name}</Text>
+                  </Group>
+                </Table.Td>
+                <Table.Td>{user.email}</Table.Td>
+                <Table.Td>{user.phone || "—"}</Table.Td>
+                <Table.Td>
+                  <Badge
+                    color={getRoleColor(user.role)}
+                    variant="light"
+                    size="md"
+                    radius="sm"
+                    leftSection={user.role === "admin" ? <Shield size={12} /> : <User size={12} />}
+                  >
+                    {user.role}
+                  </Badge>
+                </Table.Td>
+                <Table.Td>{new Date(user.created_at).toLocaleDateString()}</Table.Td>
+                <Table.Td>
+                  <Group gap={8}>
+                    <Tooltip label="View Details">
+                      <ActionIcon variant="light" color="blue" radius="md">
+                        <Eye size={16} />
+                      </ActionIcon>
+                    </Tooltip>
+                    <Tooltip label="Edit User">
+                      <ActionIcon variant="light" color="green" onClick={() => openEditModal(user)} radius="md">
+                        <Edit size={16} />
+                      </ActionIcon>
+                    </Tooltip>
+                    <Tooltip label="Delete User">
+                      <ActionIcon
+                        variant="light"
+                        color="red"
+                        onClick={() => handleDeleteUser(user.id, user.name)}
+                        radius="md"
+                      >
+                        <Trash size={16} />
+                      </ActionIcon>
+                    </Tooltip>
+                  </Group>
+                </Table.Td>
+              </motion.tr>
+            ))
+          )}
+        </Table.Tbody>
+      </Table>
+    </Paper>
+  )
+
+  const renderGridView = () => (
+    <Box>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {users.map((user, index) => (
+          <MotionPaper
+            key={user.id}
+            custom={index}
+            initial="hidden"
+            animate="visible"
+            variants={listItemVariants}
+            shadow="sm"
+            radius="md"
+            p="md"
+            withBorder
+            className="flex flex-col"
+          >
+            <Group justify="space-between" mb="xs">
+              <Group gap="sm">
+                <Avatar size="lg" color={theme.colors[theme.primaryColor][6]} radius="xl">
+                  {getInitials(user.name)}
+                </Avatar>
+                <div>
+                  <Text fw={700} size="lg">
+                    {user.name}
+                  </Text>
+                  <Text c="dimmed" size="sm">
+                    {user.email}
+                  </Text>
+                </div>
+              </Group>
+              <Badge
+                color={getRoleColor(user.role)}
+                variant="light"
+                size="lg"
+                radius="sm"
+                leftSection={user.role === "admin" ? <Shield size={12} /> : <User size={12} />}
+              >
+                {user.role}
+              </Badge>
+            </Group>
+
+            <Divider my="sm" />
+
+            <div className="flex-grow">
+              <Group gap={8}>
+                <Text size="sm" fw={500}>
+                  Phone:
+                </Text>
+                <Text size="sm">{user.phone || "—"}</Text>
+              </Group>
+              <Group gap={8} mt="xs">
+                <Text size="sm" fw={500}>
+                  Joined:
+                </Text>
+                <Text size="sm">{new Date(user.created_at).toLocaleDateString()}</Text>
+              </Group>
+            </div>
+
+            <Divider my="sm" />
+
+            <Group gap={8} justify="flex-end">
+              <Tooltip label="View Details">
+                <ActionIcon variant="light" color="blue" radius="md">
+                  <Eye size={16} />
+                </ActionIcon>
+              </Tooltip>
+              <Tooltip label="Edit User">
+                <ActionIcon variant="light" color="green" onClick={() => openEditModal(user)} radius="md">
+                  <Edit size={16} />
+                </ActionIcon>
+              </Tooltip>
+              <Tooltip label="Delete User">
+                <ActionIcon
+                  variant="light"
+                  color="red"
+                  onClick={() => handleDeleteUser(user.id, user.name)}
+                  radius="md"
+                >
+                  <Trash size={16} />
+                </ActionIcon>
+              </Tooltip>
+            </Group>
+          </MotionPaper>
+        ))}
+      </div>
+
+      {users.length === 0 && !loading && (
+        <Paper shadow="sm" radius="md" p="xl" withBorder>
+          <Text ta="center" py="lg" c="dimmed">
+            No users found. Try adjusting your search criteria.
+          </Text>
+        </Paper>
+      )}
+    </Box>
+  )
 
   return (
     <AdminLayout>
-      <Container size="xl" className="py-6">
-        <Group justify="space-between" className="mb-6">
-          <Title order={2}>Users</Title>
-          <Button leftSection={<Plus size={16} />} onClick={openCreateModal}>
-            Add User
-          </Button>
-        </Group>
+      <Container size="xl" py="md">
+        <MotionPaper
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          shadow="sm"
+          radius="md"
+          p="md"
+          mb={24}
+          withBorder
+        >
+          <Group justify="space-between" mb="md">
+            <div>
+              <Title order={2} className="flex items-center gap-2">
+                <User className="text-blue-500" />
+                User Management
+              </Title>
+              <Text c="dimmed" size="sm">
+                Manage your system users and their permissions
+              </Text>
+            </div>
+            <Group>
+              <Button
+                variant="outline"
+                leftSection={<RefreshCw size={16} className={refreshing ? "animate-spin" : ""} />}
+                onClick={refreshData}
+                disabled={loading || refreshing}
+              >
+                Refresh
+              </Button>
+              <Button color="blue" leftSection={<Plus size={16} />} onClick={openCreateModal}>
+                Add User
+              </Button>
+            </Group>
+          </Group>
 
-        <form onSubmit={handleSearch} className="mb-4">
-          <TextInput
-            placeholder="Search users..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.currentTarget.value)}
-            rightSection={<Search size={16} />}
-          />
-        </form>
+          <Paper shadow="xs" radius="md" p="md" withBorder>
+            <Group justify="space-between" mb="md">
+              <form onSubmit={handleSearch} className="flex-grow">
+                <TextInput
+                  placeholder="Search by name, email or phone..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.currentTarget.value)}
+                  leftSection={<Search size={16} />}
+                  radius="md"
+                />
+              </form>
 
-        <Table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Phone</th>
-              <th>Role</th>
-              <th>Created At</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user) => (
-              <tr key={user.id}>
-                <td>{user.name}</td>
-                <td>{user.email}</td>
-                <td>{user.phone || "-"}</td>
-                <td>
-                  <Badge color={user.role === "admin" ? "blue" : "gray"}>
-                    {user.role}
-                  </Badge>
-                </td>
-                <td>{new Date(user.created_at).toLocaleDateString()}</td>
-                <td>
-                  <Group gap={8}>
-                    <ActionIcon
-                      color="blue"
-                      onClick={() => openEditModal(user)}
-                    >
-                      <Edit size={16} />
-                    </ActionIcon>
-                    <ActionIcon
-                      color="red"
-                      onClick={() => handleDeleteUser(user.id)}
-                    >
-                      <Trash size={16} />
-                    </ActionIcon>
-                  </Group>
-                </td>
-              </tr>
-            ))}
-            {users.length === 0 && (
-              <tr>
-                <td colSpan={6} className="text-center py-4">
-                  {loading ? "Loading..." : "No users found"}
-                </td>
-              </tr>
+              <Group>
+                <Button
+                  variant="subtle"
+                  leftSection={<Filter size={16} />}
+                  rightSection={<ChevronDown size={16} />}
+                  onClick={toggleFilters}
+                >
+                  Filters
+                </Button>
+              </Group>
+            </Group>
+
+            <Transition mounted={showFilters} transition="slide-down" duration={200} timingFunction="ease">
+              {(styles) => (
+                <Box style={styles} mb="md">
+                  <Paper p="md" radius="md" bg="gray.0">
+                    <Group>
+                      <Select
+                        label="Filter by role"
+                        placeholder="All roles"
+                        clearable
+                        data={[
+                          { value: "admin", label: "Admin" },
+                          { value: "customer", label: "Customer" },
+                        ]}
+                        value={roleFilter}
+                        onChange={setRoleFilter}
+                        w={200}
+                      />
+                      <Select
+                        label="Sort by"
+                        placeholder="Created date"
+                        data={[
+                          { value: "name", label: "Name" },
+                          { value: "email", label: "Email" },
+                          { value: "created_at", label: "Created date" },
+                        ]}
+                        defaultValue="created_at"
+                        w={200}
+                      />
+                    </Group>
+                  </Paper>
+                </Box>
+              )}
+            </Transition>
+
+            <Group justify="flex-end" mb="md">
+              <div className="flex gap-2 border rounded-md overflow-hidden">
+                <Button
+                  variant={viewMode === "table" ? "filled" : "subtle"}
+                  size="xs"
+                  onClick={() => setViewMode("table")}
+                >
+                  Table
+                </Button>
+                <Button
+                  variant={viewMode === "grid" ? "filled" : "subtle"}
+                  size="xs"
+                  onClick={() => setViewMode("grid")}
+                >
+                  Grid
+                </Button>
+              </div>
+            </Group>
+
+            {loading ? (
+              <div className="flex justify-center items-center p-12">
+                <Loader size="lg" type="dots" />
+              </div>
+            ) : viewMode === "table" ? (
+              renderTableView()
+            ) : (
+              renderGridView()
             )}
-          </tbody>
-        </Table>
 
-        {pagination.totalPages > 1 && (
-          <div className="flex justify-center mt-4">
-            <Pagination
-              total={pagination.totalPages}
-              value={pagination.page}
-              onChange={(page) => setPagination((prev) => ({ ...prev, page }))}
-            />
-          </div>
-        )}
+            {pagination.totalPages > 1 && (
+              <div className="flex justify-center mt-6">
+                <Pagination
+                  total={pagination.totalPages}
+                  value={pagination.page}
+                  onChange={(page) => setPagination((prev) => ({ ...prev, page }))}
+                  radius="md"
+                  withEdges
+                />
+              </div>
+            )}
+          </Paper>
+        </MotionPaper>
 
         <Modal
           opened={modalOpen}
           onClose={() => setModalOpen(false)}
-          title={currentUser ? "Edit User" : "Add User"}
+          title={
+            <Title order={3}>
+              {currentUser ? (
+                <span className="flex items-center gap-2">
+                  <Edit size={20} className="text-blue-500" />
+                  Edit User
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <Plus size={20} className="text-green-500" />
+                  Add New User
+                </span>
+              )}
+            </Title>
+          }
+          centered
+          size="lg"
+          radius="md"
+          overlayProps={{
+            blur: 3,
+          }}
         >
           <form onSubmit={handleSubmit}>
-            <TextInput
-              label="Name"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              required
-              className="mb-3"
-            />
+            <Box mb="md">
+              <TextInput
+                label="Full Name"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                required
+                radius="md"
+                placeholder="John Doe"
+                leftSection={<User size={16} />}
+              />
+            </Box>
 
-            <TextInput
-              label="Email"
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              required
-              className="mb-3"
-            />
+            <Box mb="md">
+              <TextInput
+                label="Email Address"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                required
+                radius="md"
+                placeholder="email@example.com"
+              />
+            </Box>
 
             {!currentUser && (
-              <TextInput
-                label="Password"
-                name="password"
-                type="password"
-                value={formData.password}
-                onChange={handleInputChange}
-                required={!currentUser}
-                className="mb-3"
-              />
+              <Box mb="md">
+                <TextInput
+                  label="Password"
+                  name="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  required={!currentUser}
+                  radius="md"
+                  placeholder="••••••••"
+                />
+              </Box>
             )}
 
-            <TextInput
-              label="Phone"
-              name="phone"
-              value={formData.phone}
-              onChange={handleInputChange}
-              className="mb-3"
-            />
+            <Box mb="md">
+              <TextInput
+                label="Phone Number"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                radius="md"
+                placeholder="+1 (555) 123-4567"
+              />
+            </Box>
 
-            <Select
-              label="Role"
-              name="role"
-              value={formData.role}
-              onChange={(value) => handleSelectChange("role", value)}
-              data={[
-                { value: "customer", label: "Customer" },
-                { value: "admin", label: "Admin" },
-              ]}
-              required
-              className="mb-4"
-            />
+            <Box mb="md">
+              <Select
+                label="User Role"
+                name="role"
+                value={formData.role}
+                onChange={(value) => handleSelectChange("role", value)}
+                data={[
+                  { value: "customer", label: "Customer" },
+                  { value: "admin", label: "Admin" },
+                  { value: "manager", label: "Manager" },
+                  { value: "support", label: "Support" },
+                ]}
+                required
+                radius="md"
+              />
+            </Box>
+
+            <Divider my="lg" />
 
             <Group justify="flex-end">
-              <Button variant="subtle" onClick={() => setModalOpen(false)}>
+              <Button variant="light" color="gray" onClick={() => setModalOpen(false)} radius="md">
                 Cancel
               </Button>
-              <Button type="submit">{currentUser ? "Update" : "Create"}</Button>
+              <Button type="submit" radius="md" color={currentUser ? "blue" : "green"}>
+                {currentUser ? "Update User" : "Create User"}
+              </Button>
             </Group>
           </form>
         </Modal>
       </Container>
     </AdminLayout>
-  );
+  )
 }
+

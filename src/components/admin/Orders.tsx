@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { Container, Title, Table, Group, Select, Badge, Pagination, ActionIcon, Modal, Button } from "@mantine/core"
 import { Eye } from "lucide-react"
