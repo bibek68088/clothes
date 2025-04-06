@@ -17,6 +17,7 @@ export interface CartItem extends Product {
   quantity: number;
   selectedColor?: string;
   selectedSize?: string;
+  size?: string;
 }
 
 interface CartStore {

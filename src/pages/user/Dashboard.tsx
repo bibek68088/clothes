@@ -1,81 +1,128 @@
-import { useState, useEffect } from "react"
-import { Container, Grid, Paper, Title, Text, Group, Button, Badge, Avatar, Card, Progress } from "@mantine/core"
-import { Link } from "react-router-dom"
-import { useAuth } from "../../store/useAuth"
-import { ShoppingBag, Package, Heart, CreditCard, Settings, Bell, ChevronRight } from "lucide-react"
+import { useState, useEffect } from "react";
+import {
+  Container,
+  Grid,
+  Paper,
+  Title,
+  Text,
+  Group,
+  Button,
+  Badge,
+  Avatar,
+  Card,
+  Progress,
+} from "@mantine/core";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../store/useAuth";
+import {
+  ShoppingBag,
+  Package,
+  Heart,
+  CreditCard,
+  Settings,
+  Bell,
+  ChevronRight,
+  Home,
+} from "lucide-react";
 
 interface OrderSummary {
-  id: string
-  date: string
-  status: string
-  total: number
+  id: string;
+  date: string;
+  status: string;
+  total: number;
 }
 
 interface WishlistItem {
-  id: string
-  name: string
-  image: string
-  price: number
+  id: string;
+  name: string;
+  image: string;
+  price: number;
 }
 
 export default function UserDashboard() {
-  const { user } = useAuth()
-  const [recentOrders, setRecentOrders] = useState<OrderSummary[]>([])
-  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([])
-  const [loading, setLoading] = useState(true)
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [recentOrders, setRecentOrders] = useState<OrderSummary[]>([]);
+  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        setLoading(true)
+        setLoading(true);
         // In a real app, these would be actual API calls
         // For now, we'll use mock data
 
         // Mock recent orders
         setRecentOrders([
-          { id: "ORD-1234", date: "2023-11-15", status: "delivered", total: 129.99 },
-          { id: "ORD-1235", date: "2023-11-10", status: "shipped", total: 79.5 },
-        ])
+          {
+            id: "ORD-1234",
+            date: "2023-11-15",
+            status: "delivered",
+            total: 129.99,
+          },
+          {
+            id: "ORD-1235",
+            date: "2023-11-10",
+            status: "shipped",
+            total: 79.5,
+          },
+        ]);
 
         // Mock wishlist items
         setWishlistItems([
-          { id: "1", name: "Premium Leather Jacket", image: "/images/jacket.jpg", price: 199.99 },
-          { id: "2", name: "Designer Jeans", image: "/images/jeans.jpg", price: 89.99 },
-        ])
+          {
+            id: "1",
+            name: "Premium Leather Jacket",
+            image: "/images/jacket.jpg",
+            price: 199.99,
+          },
+          {
+            id: "2",
+            name: "Designer Jeans",
+            image: "/images/jeans.jpg",
+            price: 89.99,
+          },
+        ]);
       } catch (error) {
-        console.error("Error fetching dashboard data:", error)
+        console.error("Error fetching dashboard data:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchDashboardData()
-  }, [])
+    fetchDashboardData();
+  }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending":
-        return "yellow"
+        return "yellow";
       case "processing":
-        return "blue"
+        return "blue";
       case "shipped":
-        return "indigo"
+        return "indigo";
       case "delivered":
-        return "green"
+        return "green";
       case "cancelled":
-        return "red"
+        return "red";
       default:
-        return "gray"
+        return "gray";
     }
-  }
+  };
 
   return (
     <div className="bg-gray-50 min-h-screen py-8">
       <Container size="xl">
         {/* Welcome Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl p-6 mb-8 text-white">
+        <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-6 mb-8 text-white">
           <div className="flex items-center gap-4">
-            <Avatar size="xl" radius="xl" color="blue" className="border-4 border-white">
+            <Avatar
+              size="xl"
+              radius="xl"
+              color="blue"
+              className="border-4 border-white"
+            >
               {user?.name?.charAt(0) || "U"}
             </Avatar>
             <div>
@@ -97,7 +144,12 @@ export default function UserDashboard() {
               <Text size="xl" fw={700}>
                 250 pts
               </Text>
-              <Progress value={25} size="sm" className="mt-2" color="rgba(255,255,255,0.7)" />
+              <Progress
+                value={25}
+                size="sm"
+                className="mt-2"
+                color="rgba(255,255,255,0.7)"
+              />
             </Paper>
             <Paper className="p-4 bg-white/10 backdrop-blur-sm rounded-lg">
               <Text size="sm" className="text-white/70">
@@ -128,15 +180,23 @@ export default function UserDashboard() {
 
         <Grid gutter={24}>
           {/* Left Column - Navigation */}
-          <Grid.Col span={{ base: 12, md: 3 }}>
+          <Grid.Col span={12} md={3}>
             <Paper shadow="sm" radius="md" p="md" withBorder className="mb-6">
-              <Title order={4} className="mb-4">
-                My Account
-              </Title>
+              <Group justify="space-between" mb="md">
+                <Title order={4}>My Account</Title>
+                <Button
+                  variant="subtle"
+                  size="compact-sm"
+                  leftSection={<Home size={14} />}
+                  onClick={() => navigate("/")}
+                >
+                  Home
+                </Button>
+              </Group>
               <div className="space-y-2">
                 <Link to="/user/dashboard" className="no-underline">
                   <Button
-                    variant="subtle"
+                    variant="light"
                     fullWidth
                     leftSection={<ShoppingBag size={18} />}
                     className="justify-start bg-blue-50 text-blue-600"
@@ -146,7 +206,7 @@ export default function UserDashboard() {
                 </Link>
                 <Link to="/orders" className="no-underline">
                   <Button
-                    variant="subtle"
+                    variant="light"
                     fullWidth
                     leftSection={<Package size={18} />}
                     className="justify-start hover:bg-gray-100"
@@ -156,7 +216,7 @@ export default function UserDashboard() {
                 </Link>
                 <Link to="/wishlist" className="no-underline">
                   <Button
-                    variant="subtle"
+                    variant="light"
                     fullWidth
                     leftSection={<Heart size={18} />}
                     className="justify-start hover:bg-gray-100"
@@ -166,7 +226,7 @@ export default function UserDashboard() {
                 </Link>
                 <Link to="/payment-methods" className="no-underline">
                   <Button
-                    variant="subtle"
+                    variant="light"
                     fullWidth
                     leftSection={<CreditCard size={18} />}
                     className="justify-start hover:bg-gray-100"
@@ -176,7 +236,7 @@ export default function UserDashboard() {
                 </Link>
                 <Link to="/profile" className="no-underline">
                   <Button
-                    variant="subtle"
+                    variant="light"
                     fullWidth
                     leftSection={<Settings size={18} />}
                     className="justify-start hover:bg-gray-100"
@@ -198,10 +258,10 @@ export default function UserDashboard() {
                     <Text size="sm" fw={500}>
                       Your order has been shipped
                     </Text>
-                    <Text size="xs" color="dimmed">
+                    <Text size="xs" c="dimmed">
                       Order #ORD-1235 has been shipped and is on its way.
                     </Text>
-                    <Text size="xs" color="dimmed" className="mt-1">
+                    <Text size="xs" c="dimmed" className="mt-1">
                       2 days ago
                     </Text>
                   </div>
@@ -212,10 +272,10 @@ export default function UserDashboard() {
                     <Text size="sm" fw={500}>
                       Special offer just for you
                     </Text>
-                    <Text size="xs" color="dimmed">
+                    <Text size="xs" c="dimmed">
                       Get 20% off on all jackets this weekend!
                     </Text>
-                    <Text size="xs" color="dimmed" className="mt-1">
+                    <Text size="xs" c="dimmed" className="mt-1">
                       5 days ago
                     </Text>
                   </div>
@@ -225,14 +285,19 @@ export default function UserDashboard() {
           </Grid.Col>
 
           {/* Right Column - Content */}
-          <Grid.Col span={{ base: 12, md: 9 }}>
+          <Grid.Col span={12} md={9}>
             <Grid gutter={24}>
               {/* Recent Orders */}
               <Grid.Col span={12}>
                 <Paper shadow="sm" radius="md" p="md" withBorder>
                   <Group justify="space-between" className="mb-4">
                     <Title order={4}>Recent Orders</Title>
-                    <Button variant="subtle" rightSection={<ChevronRight size={16} />} component={Link} to="/orders">
+                    <Button
+                      variant="subtle"
+                      rightSection={<ChevronRight size={16} />}
+                      component={Link}
+                      to="/orders"
+                    >
                       View All
                     </Button>
                   </Group>
@@ -246,12 +311,15 @@ export default function UserDashboard() {
                         >
                           <div>
                             <Text fw={500}>{order.id}</Text>
-                            <Text size="sm" color="dimmed">
+                            <Text size="sm" c="dimmed">
                               {new Date(order.date).toLocaleDateString()}
                             </Text>
                           </div>
                           <div className="text-right">
-                            <Badge color={getStatusColor(order.status)} className="mb-1">
+                            <Badge
+                              color={getStatusColor(order.status)}
+                              className="mb-1"
+                            >
                               {order.status}
                             </Badge>
                             <Text fw={500}>${order.total.toFixed(2)}</Text>
@@ -260,7 +328,7 @@ export default function UserDashboard() {
                       ))}
                     </div>
                   ) : (
-                    <Text color="dimmed" align="center" className="py-4">
+                    <Text c="dimmed" ta="center" className="py-4">
                       No recent orders found
                     </Text>
                   )}
@@ -272,18 +340,26 @@ export default function UserDashboard() {
                 <Paper shadow="sm" radius="md" p="md" withBorder>
                   <Group justify="space-between" className="mb-4">
                     <Title order={4}>Wishlist</Title>
-                    <Button variant="subtle" rightSection={<ChevronRight size={16} />} component={Link} to="/wishlist">
+                    <Button
+                      variant="subtle"
+                      rightSection={<ChevronRight size={16} />}
+                      component={Link}
+                      to="/wishlist"
+                    >
                       View All
                     </Button>
                   </Group>
 
                   <Grid>
                     {wishlistItems.map((item) => (
-                      <Grid.Col key={item.id} span={{ base: 6, md: 4 }}>
+                      <Grid.Col key={item.id} span={6} md={4}>
                         <Card shadow="sm" p="md" radius="md" withBorder>
                           <Card.Section>
                             <img
-                              src={item.image || "/placeholder.svg"}
+                              src={
+                                item.image ||
+                                "/placeholder.svg?height=150&width=200"
+                              }
                               alt={item.name}
                               className="w-full h-32 object-cover"
                             />
@@ -311,7 +387,7 @@ export default function UserDashboard() {
 
                     {wishlistItems.length === 0 && (
                       <Grid.Col span={12}>
-                        <Text color="dimmed" align="center" className="py-4">
+                        <Text c="dimmed" ta="center" className="py-4">
                           Your wishlist is empty
                         </Text>
                       </Grid.Col>
@@ -324,6 +400,5 @@ export default function UserDashboard() {
         </Grid>
       </Container>
     </div>
-  )
+  );
 }
-

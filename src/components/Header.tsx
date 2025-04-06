@@ -1,156 +1,274 @@
+import { Link, useNavigate } from "react-router-dom";
 import {
-  Search,
+  Container,
+  Group,
+  Burger,
+  Drawer,
+  UnstyledButton,
+  Avatar,
+  Text,
+  Menu,
+  Divider,
+  Badge,
+} from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
+import {
   ShoppingBag,
+  Search,
+  Heart,
   User,
   LogOut,
+  ShoppingCart,
+  LayoutDashboard,
   Settings,
-  Package,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
-import { useCart } from "../store/useCart";
 import { useAuth } from "../store/useAuth";
-import { useState } from "react";
+import { useCart } from "../store/useCart";
 
 export function Header() {
-  const cartItems = useCart((state) => state.items) || []; // Add fallback empty array
-  const { isAuthenticated, user, logout } = useAuth();
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] =
+    useDisclosure(false);
+  const { user, isAuthenticated, logout } = useAuth();
+  const { items } = useCart();
   const navigate = useNavigate();
 
-  // Toggle dropdown visibility
-  const toggleDropdown = () => {
-    setIsDropdownOpen((prev) => !prev);
-  };
+  const cartItemCount = items?.length || 0;
 
-  // Close dropdown when clicking outside
-  const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
-    if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
-      setIsDropdownOpen(false);
-    }
-  };
-
-  // Handle logout
   const handleLogout = () => {
     logout();
-    setIsDropdownOpen(false);
     navigate("/");
   };
 
+  const isAdmin = user?.role === "admin";
+  const dashboardPath = isAdmin ? "/admin" : "/user/dashboard";
+
   return (
-    <header className="bg-white shadow-sm">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          <Link to="/" className="text-2xl font-bold">
-            Aashish
+    <header className="border-b border-gray-200 bg-white">
+      <Container size="xl" className="py-3">
+        <div className="flex items-center justify-between">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2 no-underline">
+            <ShoppingBag size={28} className="text-blue-600" />
+            <Text component="span" size="xl" fw={700} className="text-gray-900">
+              Aashish
+            </Text>
           </Link>
 
-          <nav className="hidden md:flex space-x-8">
-            <Link to="/new" className="text-gray-600 hover:text-black">
-              New
+          {/* Desktop Navigation */}
+          <Group gap={30} className="hidden md:flex">
+            <Link
+              to="/products"
+              className="text-gray-700 hover:text-blue-600 no-underline"
+            >
+              Products
             </Link>
-            <Link to="/shop" className="text-gray-600 hover:text-black">
-              Shop
+            <Link
+              to="/categories"
+              className="text-gray-700 hover:text-blue-600 no-underline"
+            >
+              Categories
             </Link>
-            <Link to="/featured" className="text-gray-600 hover:text-black">
-              Featured
+            <Link
+              to="/sale"
+              className="text-gray-700 hover:text-blue-600 no-underline"
+            >
+              Sale
             </Link>
-          </nav>
+            <Link
+              to="/about"
+              className="text-gray-700 hover:text-blue-600 no-underline"
+            >
+              About
+            </Link>
+          </Group>
 
-          <div className="flex items-center space-x-4">
-            <button className="p-2 hover:bg-gray-100 rounded-full">
-              <Search className="w-5 h-5" />
-            </button>
+          {/* Actions */}
+          <Group gap={10}>
+            <UnstyledButton className="hidden md:flex p-2 hover:bg-gray-100 rounded-full">
+              <Search size={20} />
+            </UnstyledButton>
 
-            {/* User Icon with Dropdown */}
-            <div className="relative" onBlur={handleBlur} tabIndex={0}>
-              <button
-                onClick={toggleDropdown}
-                className="p-2 hover:bg-gray-100 rounded-full focus:outline-none"
-              >
-                <User className="w-5 h-5" />
-              </button>
-
-              {isDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-10 border border-gray-200">
-                  {isAuthenticated ? (
-                    <>
-                      {/* User info section */}
-                      <div className="px-4 py-2 border-b border-gray-200">
-                        <p className="font-medium text-sm">{user?.name}</p>
-                        <p className="text-xs text-gray-500">{user?.email}</p>
-                      </div>
-
-                      {/* User menu options */}
-                      <Link
-                        to="/profile"
-                        className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors"
-                        onClick={() => setIsDropdownOpen(false)}
-                      >
-                        <Settings className="w-4 h-4 mr-2" />
-                        Profile
-                      </Link>
-                      <Link
-                        to="/orders"
-                        className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors"
-                        onClick={() => setIsDropdownOpen(false)}
-                      >
-                        <Package className="w-4 h-4 mr-2" />
-                        Orders
-                      </Link>
-                      {user?.role === "admin" && (
-                        <Link
-                          to="/admin"
-                          className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors"
-                          onClick={() => setIsDropdownOpen(false)}
-                        >
-                          <Settings className="w-4 h-4 mr-2" />
-                          Admin Dashboard
-                        </Link>
-                      )}
-                      <button
-                        onClick={handleLogout}
-                        className="flex items-center w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100 transition-colors"
-                      >
-                        <LogOut className="w-4 h-4 mr-2" />
-                        Logout
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <Link
-                        to="/login"
-                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors"
-                        onClick={() => setIsDropdownOpen(false)}
-                      >
-                        Login
-                      </Link>
-                      <Link
-                        to="/signup"
-                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors"
-                        onClick={() => setIsDropdownOpen(false)}
-                      >
-                        Signup
-                      </Link>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
+            <Link
+              to="/wishlist"
+              className="p-2 hover:bg-gray-100 rounded-full relative no-underline"
+            >
+              <Heart size={20} className="text-gray-700" />
+            </Link>
 
             <Link
               to="/cart"
-              className="p-2 hover:bg-gray-100 rounded-full relative"
+              className="p-2 hover:bg-gray-100 rounded-full relative no-underline"
             >
-              <ShoppingBag className="w-5 h-5" />
-              {cartItems && cartItems.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-black text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                  {cartItems.length}
-                </span>
+              <ShoppingCart size={20} className="text-gray-700" />
+              {cartItemCount > 0 && (
+                <Badge
+                  color="blue"
+                  size="xs"
+                  radius="xl"
+                  className="absolute -top-1 -right-1"
+                >
+                  {cartItemCount}
+                </Badge>
               )}
             </Link>
-          </div>
+
+            {isAuthenticated ? (
+              <Menu position="bottom-end" shadow="md" width={200}>
+                <Menu.Target>
+                  <UnstyledButton className="p-2 hover:bg-gray-100 rounded-full">
+                    <Avatar size="sm" color="blue" radius="xl">
+                      {user?.name?.charAt(0) || "U"}
+                    </Avatar>
+                  </UnstyledButton>
+                </Menu.Target>
+
+                <Menu.Dropdown>
+                  <Menu.Label>
+                    <Text fw={500}>{user?.name}</Text>
+                    <Text size="xs" c="dimmed">
+                      {user?.email}
+                    </Text>
+                  </Menu.Label>
+
+                  <Menu.Divider />
+
+                  <Menu.Item
+                    leftSection={<LayoutDashboard size={16} />}
+                    component={Link}
+                    to={dashboardPath}
+                  >
+                    Dashboard
+                  </Menu.Item>
+
+                  <Menu.Item
+                    leftSection={<Settings size={16} />}
+                    component={Link}
+                    to="/profile"
+                  >
+                    Settings
+                  </Menu.Item>
+
+                  <Menu.Divider />
+
+                  <Menu.Item
+                    leftSection={<LogOut size={16} />}
+                    onClick={handleLogout}
+                    color="red"
+                  >
+                    Logout
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            ) : (
+              <Link
+                to="/login"
+                className="p-2 hover:bg-gray-100 rounded-full no-underline"
+              >
+                <User size={20} className="text-gray-700" />
+              </Link>
+            )}
+
+            <Burger
+              opened={drawerOpened}
+              onClick={toggleDrawer}
+              className="md:hidden"
+            />
+          </Group>
         </div>
-      </div>
+      </Container>
+
+      {/* Mobile Navigation Drawer */}
+      <Drawer
+        opened={drawerOpened}
+        onClose={closeDrawer}
+        size="100%"
+        padding="md"
+        title={
+          <div className="flex items-center gap-2">
+            <ShoppingBag size={24} className="text-blue-600" />
+            <Text fw={700}>Aashish</Text>
+          </div>
+        }
+        zIndex={1000}
+      >
+        <div className="flex flex-col gap-4">
+          <Link
+            to="/products"
+            className="text-gray-700 hover:text-blue-600 no-underline py-2"
+            onClick={closeDrawer}
+          >
+            Products
+          </Link>
+          <Link
+            to="/categories"
+            className="text-gray-700 hover:text-blue-600 no-underline py-2"
+            onClick={closeDrawer}
+          >
+            Categories
+          </Link>
+          <Link
+            to="/sale"
+            className="text-gray-700 hover:text-blue-600 no-underline py-2"
+            onClick={closeDrawer}
+          >
+            Sale
+          </Link>
+          <Link
+            to="/about"
+            className="text-gray-700 hover:text-blue-600 no-underline py-2"
+            onClick={closeDrawer}
+          >
+            About
+          </Link>
+
+          <Divider my="sm" />
+
+          {isAuthenticated ? (
+            <>
+              <Link
+                to={dashboardPath}
+                className="text-gray-700 hover:text-blue-600 no-underline py-2"
+                onClick={closeDrawer}
+              >
+                Dashboard
+              </Link>
+              <Link
+                to="/profile"
+                className="text-gray-700 hover:text-blue-600 no-underline py-2"
+                onClick={closeDrawer}
+              >
+                Settings
+              </Link>
+              <UnstyledButton
+                className="text-red-600 hover:text-red-700 py-2"
+                onClick={() => {
+                  handleLogout();
+                  closeDrawer();
+                }}
+              >
+                Logout
+              </UnstyledButton>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="text-gray-700 hover:text-blue-600 no-underline py-2"
+                onClick={closeDrawer}
+              >
+                Login
+              </Link>
+              <Link
+                to="/signup"
+                className="text-gray-700 hover:text-blue-600 no-underline py-2"
+                onClick={closeDrawer}
+              >
+                Sign Up
+              </Link>
+            </>
+          )}
+        </div>
+      </Drawer>
     </header>
   );
 }
