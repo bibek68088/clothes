@@ -41,6 +41,7 @@ function AppContent() {
     "/admin/users",
     "/admin/products",
     "/admin/orders",
+    "/orders",
   ];
 
   // Check if current path starts with any of the noFooterPages
@@ -82,6 +83,50 @@ function AppContent() {
             element={
               <AuthGuard>
                 <UserDashboard />
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/orders"
+            element={
+              <AuthGuard>
+                <div className="p-8 text-center">
+                  <h2 className="text-2xl font-bold mb-4">Order History</h2>
+                  <p>Your order history will be displayed here.</p>
+                </div>
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/orders/:id"
+            element={
+              <AuthGuard>
+                <div className="p-8 text-center">
+                  <h2 className="text-2xl font-bold mb-4">Order Details</h2>
+                  <p>Order details will be displayed here.</p>
+                </div>
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/addresses"
+            element={
+              <AuthGuard>
+                <div className="p-8 text-center">
+                  <h2 className="text-2xl font-bold mb-4">Saved Addresses</h2>
+                  <p>Your saved addresses will be displayed here.</p>
+                </div>
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/payment-methods"
+            element={
+              <AuthGuard>
+                <div className="p-8 text-center">
+                  <h2 className="text-2xl font-bold mb-4">Payment Methods</h2>
+                  <p>Your payment methods will be displayed here.</p>
+                </div>
               </AuthGuard>
             }
           />
