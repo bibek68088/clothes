@@ -84,7 +84,7 @@ export default function UserDashboard() {
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
+  const [stats] = useState({
     totalOrders: 12,
     totalSpent: 1249.85,
     loyaltyPoints: 250,
@@ -462,7 +462,7 @@ export default function UserDashboard() {
 
         <Grid gutter={24}>
           {/* Left Column - Navigation & Notifications */}
-          <Grid.Col span={12} md={4} orderMd={2}>
+          <Grid.Col span={{ base: 12, md: 4 }} order={{ md: 2 }}>
             <motion.div
               initial="hidden"
               animate="visible"
@@ -571,7 +571,7 @@ export default function UserDashboard() {
                 </Group>
 
                 <div className="space-y-3">
-                  {notifications.map((notification, index) => (
+                  {notifications.map((notification) => (
                     <MotionPaper
                       key={notification.id}
                       variants={itemVariants}
@@ -632,7 +632,7 @@ export default function UserDashboard() {
           </Grid.Col>
 
           {/* Right Column - Content */}
-          <Grid.Col span={12} md={8} orderMd={1}>
+          <Grid.Col span={{ base: 12, md: 8 }} order={{ md: 1 }}>
             <motion.div
               initial="hidden"
               animate="visible"
@@ -855,7 +855,7 @@ export default function UserDashboard() {
                 {loading ? (
                   <Grid>
                     {[1, 2, 3, 4].map((i) => (
-                      <Grid.Col key={i} span={6} xs={3}>
+                      <Grid.Col key={i} span={{ base: 6, xs: 3 }}>
                         <Skeleton height={200} radius="md" />
                       </Grid.Col>
                     ))}
@@ -863,7 +863,7 @@ export default function UserDashboard() {
                 ) : (
                   <Grid>
                     {wishlistItems.map((item) => (
-                      <Grid.Col key={item.id} span={6} xs={3}>
+                      <Grid.Col key={item.id} span={{ base: 6, xs: 3 }}>
                         <MotionCard
                           variants={itemVariants}
                           shadow="sm"
@@ -917,7 +917,10 @@ export default function UserDashboard() {
                             )}
                           </Group>
 
-                          <Group className="mt-auto pt-3" justify="space-between">
+                          <Group
+                            className="mt-auto pt-3"
+                            justify="space-between"
+                          >
                             <Button
                               variant="light"
                               size="xs"
