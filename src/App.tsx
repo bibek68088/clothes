@@ -1,157 +1,183 @@
-"use client";
-
-import { useEffect, lazy, Suspense } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
 import { MantineProvider } from "@mantine/core";
+import { Notifications } from "@mantine/notifications";
 import "@mantine/core/styles.css";
+import "@mantine/notifications/styles.css";
 
-// Components
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
-import { AuthGuard } from "./components/auth/auth-guard";
-
-// Pages that don't need lazy loading (frequently accessed)
 import { HomePage } from "./pages/HomePage";
+import { ProductListPage } from "./pages/ProductListPage";
+import { ProductPage } from "./pages/ProductPage";
+import { CartPage } from "./pages/CartPage";
+import { CheckoutPage } from "./pages/checkout/CheckoutPage";
 import LoginPage from "./components/auth/Login";
 import SignupPage from "./pages/user/Signup";
+import UserDashboard from "./pages/user/Dashboard";
+import { SettingsPage } from "./pages/user/Settings";
+import { WishlistPage } from "./pages/WishlistPage";
+import { AdminDashboard } from "./components/admin/Dashboard";
+import { AdminUsers } from "./components/admin/Users";
+import { AdminProducts } from "./components/admin/Products";
+import { AdminOrders } from "./components/admin/Orders";
+import { AuthGuard } from "./components/auth/auth-guard";
 
-// Lazy loaded pages for better performance
-const ProductPage = lazy(() =>
-  import("./pages/ProductPage").then((module) => ({
-    default: module.ProductPage,
-  }))
-);
-const CartPage = lazy(() =>
-  import("./pages/CartPage").then((module) => ({ default: module.CartPage }))
-);
-const ProfilePage = lazy(() =>
-  import("./pages/user/Profile").then((module) => ({ default: module.default }))
-);
-const CheckoutPage = lazy(() =>
-  import("./pages/checkout/CheckoutPage").then((module) => ({
-    default: module.CheckoutPage,
-  }))
-);
-const WishlistPage = lazy(() =>
-  import("./pages/WishlistPage").then((module) => ({
-    default: module.WishlistPage,
-  }))
-);
+// Component to conditionally render the footer
+function AppContent() {
+  const location = useLocation();
 
-// Add this import
-const UserDashboard = lazy(() =>
-  import("./pages/user/Dashboard").then((module) => ({
-    default: module.default,
-  }))
-);
+  // Pages where footer should not be shown
+  const noFooterPages = [
+    "/login",
+    "/signup",
+    "/profile",
+    "/user/dashboard",
+    "/admin",
+    "/admin/users",
+    "/admin/products",
+    "/admin/orders",
+    "/orders",
+  ];
 
-// Admin Pages - lazy loaded
-const AdminDashboard = lazy(() =>
-  import("./components/admin/Dashboard").then((module) => ({
-    default: module.AdminDashboard,
-  }))
-);
-const AdminUsers = lazy(() =>
-  import("./components/admin/Users").then((module) => ({
-    default: module.AdminUsers,
-  }))
-);
-const AdminProducts = lazy(() =>
-  import("./components/admin/Products").then((module) => ({
-    default: module.AdminProducts,
-  }))
-);
-const AdminOrders = lazy(() =>
-  import("./components/admin/Orders").then((module) => ({
-    default: module.AdminOrders,
-  }))
-);
-
-// Hooks\
-import { useAuth } from "./store/useAuth";
-import { useCart } from "./store/useCart";
-
-// Loading component for Suspense fallback
-const LoadingFallback = () => (
-  <div className="flex justify-center items-center h-64">
-    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-  </div>
-);
-
-// Admin routes configuration
-const adminRoutes = [
-  { path: "/admin", element: <AdminDashboard /> },
-  { path: "/admin/users", element: <AdminUsers /> },
-  { path: "/admin/products", element: <AdminProducts /> },
-  { path: "/admin/orders", element: <AdminOrders /> },
-];
-
-// Update the protectedRoutes array to include the user dashboard
-const protectedRoutes = [
-  { path: "/profile", element: <ProfilePage /> },
-  { path: "/checkout", element: <CheckoutPage /> },
-  { path: "/wishlist", element: <WishlistPage /> },
-  { path: "/user/dashboard", element: <UserDashboard /> }, // Add this line
-];
-
-// Public routes configuration
-const publicRoutes = [
-  { path: "/", element: <HomePage /> },
-  { path: "/login", element: <LoginPage /> },
-  { path: "/signup", element: <SignupPage /> },
-  { path: "/product/:id", element: <ProductPage /> },
-  { path: "/cart", element: <CartPage /> },
-  { path: "*", element: <Navigate to="/" replace /> },
-];
-
-function App() {
-  const { isAuthenticated } = useAuth();
-  const { fetchCart } = useCart();
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchCart();
-    }
-  }, [isAuthenticated, fetchCart]);
+  // Check if current path starts with any of the noFooterPages
+  const shouldShowFooter = !noFooterPages.some(
+    (page) =>
+      location.pathname === page || location.pathname.startsWith(`${page}/`)
+  );
 
   return (
-    <MantineProvider theme={{ primaryColor: "blue" }}>
-      <BrowserRouter>
-        <div className="min-h-screen bg-white flex flex-col">
-          <Header />
-          <main className="flex-grow">
-            <Suspense fallback={<LoadingFallback />}>
-              <Routes>
-                {/* Admin Routes - require admin role */}
-                {adminRoutes.map(({ path, element }) => (
-                  <Route
-                    key={path}
-                    path={path}
-                    element={<AuthGuard adminRequired>{element}</AuthGuard>}
-                  />
-                ))}
+    <div className="flex flex-col min-h-screen">
+      <Header />
+      <main className="flex-grow">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/products" element={<ProductListPage />} />
+          <Route path="/product/:id" element={<ProductPage />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route
+            path="/wishlist"
+            element={
+              <AuthGuard>
+                <WishlistPage />
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <AuthGuard>
+                <SettingsPage />
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/user/dashboard"
+            element={
+              <AuthGuard>
+                <UserDashboard />
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/orders"
+            element={
+              <AuthGuard>
+                <div className="p-8 text-center">
+                  <h2 className="text-2xl font-bold mb-4">Order History</h2>
+                  <p>Your order history will be displayed here.</p>
+                </div>
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/orders/:id"
+            element={
+              <AuthGuard>
+                <div className="p-8 text-center">
+                  <h2 className="text-2xl font-bold mb-4">Order Details</h2>
+                  <p>Order details will be displayed here.</p>
+                </div>
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/addresses"
+            element={
+              <AuthGuard>
+                <div className="p-8 text-center">
+                  <h2 className="text-2xl font-bold mb-4">Saved Addresses</h2>
+                  <p>Your saved addresses will be displayed here.</p>
+                </div>
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/payment-methods"
+            element={
+              <AuthGuard>
+                <div className="p-8 text-center">
+                  <h2 className="text-2xl font-bold mb-4">Payment Methods</h2>
+                  <p>Your payment methods will be displayed here.</p>
+                </div>
+              </AuthGuard>
+            }
+          />
 
-                {/* Protected Routes - require authentication */}
-                {protectedRoutes.map(({ path, element }) => (
-                  <Route
-                    key={path}
-                    path={path}
-                    element={<AuthGuard>{element}</AuthGuard>}
-                  />
-                ))}
-
-                {/* Public Routes */}
-                {publicRoutes.map(({ path, element }) => (
-                  <Route key={path} path={path} element={element} />
-                ))}
-              </Routes>
-            </Suspense>
-          </main>
-          <Footer />
-        </div>
-      </BrowserRouter>
-    </MantineProvider>
+          {/* Admin Routes */}
+          <Route
+            path="/admin"
+            element={
+              <AuthGuard adminRequired>
+                <AdminDashboard />
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/admin/users"
+            element={
+              <AuthGuard adminRequired>
+                <AdminUsers />
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/admin/products"
+            element={
+              <AuthGuard adminRequired>
+                <AdminProducts />
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/admin/orders"
+            element={
+              <AuthGuard adminRequired>
+                <AdminOrders />
+              </AuthGuard>
+            }
+          />
+        </Routes>
+      </main>
+      {shouldShowFooter && <Footer />}
+    </div>
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <MantineProvider>
+      <Notifications />
+      <Router>
+        <AppContent />
+      </Router>
+    </MantineProvider>
+  );
+}

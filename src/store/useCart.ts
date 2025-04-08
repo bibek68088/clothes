@@ -1,31 +1,32 @@
-import { create } from "zustand"
-import { persist } from "zustand/middleware"
-import * as cartService from "../services/cart.service"
-import type { Cart, CartItem } from "../services/cart.service"
-import { useAuth } from "./useAuth"
+// src/store/useCart.tsx
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import api from '../services/api';
 
-interface CartState {
-  cart: Cart | null
-  isLoading: boolean
-  error: string | null
-
-  // Actions
-  fetchCart: () => Promise<void>
-  addToCart: (productId: string, quantity?: number, options?: { color?: string; size?: string }) => Promise<void>
-  updateCartItem: (itemId: string, quantity: number) => Promise<void>
-  removeFromCart: (itemId: string) => Promise<void>
-  clearCart: () => Promise<void>
-  applyCoupon: (code: string) => Promise<void>
-  removeCoupon: () => Promise<void>
-  syncCartAfterLogin: () => Promise<void>
+export interface Product {
+  id: string;
+  name: string;
+  price: number;
+  image: string;
+  description?: string;
+  colors?: string[];
+  sizes?: string[];
 }
 
-// Initial cart structure for new carts
-const initialCart: Cart = {
-  id: "guest-cart",
-  items: [],
-  total: 0,
-  item_count: 0,
+export interface CartItem extends Product {
+  quantity: number;
+  selectedColor?: string;
+  selectedSize?: string;
+  size?: string;
+}
+
+interface CartStore {
+  items: CartItem[];
+  addItem: (product: Product, options?: { color?: string; size?: string }) => Promise<void>;
+  removeItem: (id: string) => Promise<void>;
+  updateQuantity: (id: string, quantity: number) => Promise<void>;
+  clearCart: () => Promise<void>;
+  fetchCart: () => Promise<void>; // Add this method
 }
 
 export const useCart = create<CartState>()(

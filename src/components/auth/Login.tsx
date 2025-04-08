@@ -30,23 +30,14 @@ export default function LoginPage() {
   // Get the page user was trying to access before being redirected to login
   const from = location.state?.from || "/"
 
-  // Update the handleSubmit function to redirect based on user role
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMessage(null)
 
     try {
       await login(email, password)
-
-      // Get the current user after login
-      const currentUser = useAuth.getState().user
-
-      // Redirect based on user role
-      if (currentUser?.role === "admin") {
-        navigate("/admin", { replace: true })
-      } else {
-        navigate("/user/dashboard", { replace: true })
-      }
+      // Redirect to the page they were trying to access, or home
+      navigate(from, { replace: true })
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Login failed")
     }
@@ -59,7 +50,7 @@ export default function LoginPage() {
           <div className="flex items-center gap-2">
             <IconShoppingBag size={32} className="text-blue-600" />
             <Title order={1} className="text-2xl font-bold">
-              StyleHub
+              Aashish
             </Title>
           </div>
         </div>
@@ -68,7 +59,7 @@ export default function LoginPage() {
           <Title order={2} className="text-center mb-2">
             Welcome Back
           </Title>
-          <Text color="dimmed" size="sm" className="text-center mb-5">
+          <Text c="dimmed" size="sm" className="text-center mb-5">
             Sign in to your account to continue shopping
           </Text>
 
@@ -117,7 +108,7 @@ export default function LoginPage() {
               Log In
             </Button>
 
-            <Text color="dimmed" size="sm" className="text-center mt-3">
+            <Text c="dimmed" size="sm" className="text-center mt-3">
               Don't have an account?{" "}
               <Text component={Link} to="/signup" className="text-blue-600 hover:underline cursor-pointer">
                 Sign up

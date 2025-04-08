@@ -1,68 +1,123 @@
-import { Facebook, Instagram, Twitter } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Container, Text, Group, ActionIcon, Divider } from "@mantine/core"
+import { Link } from "react-router-dom"
+import { Facebook, Twitter, Instagram, Linkedin, ShoppingBag } from "lucide-react"
 
 export function Footer() {
   return (
-    <footer className="bg-white border-t">
-      <div className="container mx-auto px-4 py-12">
+    <footer className="bg-gray-50 py-12 mt-auto">
+      <Container size="xl">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="font-medium mb-4">COMPANY</h3>
-            <ul className="space-y-2">
-              <li><Link to="/about" className="text-gray-600 hover:text-black">About Us</Link></li>
-              <li><Link to="/careers" className="text-gray-600 hover:text-black">Careers</Link></li>
-              <li><Link to="/stores" className="text-gray-600 hover:text-black">Store Locator</Link></li>
-            </ul>
+            <div className="flex items-center gap-2 mb-4">
+              <ShoppingBag size={24} className="text-blue-600" />
+              <Text fw={700} size="lg">
+                Aashish
+              </Text>
+            </div>
+            <Text size="sm" c="dimmed" className="max-w-xs">
+              Your one-stop destination for premium clothing and accessories. Quality meets style in every product.
+            </Text>
+            <Group mt="md">
+              <ActionIcon variant="subtle" color="gray">
+                <Facebook size={18} />
+              </ActionIcon>
+              <ActionIcon variant="subtle" color="gray">
+                <Twitter size={18} />
+              </ActionIcon>
+              <ActionIcon variant="subtle" color="gray">
+                <Instagram size={18} />
+              </ActionIcon>
+              <ActionIcon variant="subtle" color="gray">
+                <Linkedin size={18} />
+              </ActionIcon>
+            </Group>
           </div>
-          
+
           <div>
-            <h3 className="font-medium mb-4">HELP</h3>
-            <ul className="space-y-2">
-              <li><Link to="/faq" className="text-gray-600 hover:text-black">FAQ</Link></li>
-              <li><Link to="/shipping" className="text-gray-600 hover:text-black">Shipping</Link></li>
-              <li><Link to="/returns" className="text-gray-600 hover:text-black">Returns</Link></li>
-            </ul>
+            <Text fw={600} mb="md">
+              Shop
+            </Text>
+            <div className="flex flex-col gap-2">
+              <Link to="/products" className="text-gray-600 hover:text-blue-600 no-underline text-sm">
+                All Products
+              </Link>
+              <Link to="/categories/men" className="text-gray-600 hover:text-blue-600 no-underline text-sm">
+                Men's Collection
+              </Link>
+              <Link to="/categories/women" className="text-gray-600 hover:text-blue-600 no-underline text-sm">
+                Women's Collection
+              </Link>
+              <Link to="/sale" className="text-gray-600 hover:text-blue-600 no-underline text-sm">
+                Sale
+              </Link>
+              <Link to="/new-arrivals" className="text-gray-600 hover:text-blue-600 no-underline text-sm">
+                New Arrivals
+              </Link>
+            </div>
           </div>
-          
+
           <div>
-            <h3 className="font-medium mb-4">SERVICES</h3>
-            <ul className="space-y-2">
-              <li><Link to="/style-guide" className="text-gray-600 hover:text-black">Style Guide</Link></li>
-              <li><Link to="/gift-cards" className="text-gray-600 hover:text-black">Gift Cards</Link></li>
-              <li><Link to="/membership" className="text-gray-600 hover:text-black">Membership</Link></li>
-            </ul>
+            <Text fw={600} mb="md">
+              Support
+            </Text>
+            <div className="flex flex-col gap-2">
+              <Link to="/contact" className="text-gray-600 hover:text-blue-600 no-underline text-sm">
+                Contact Us
+              </Link>
+              <Link to="/faq" className="text-gray-600 hover:text-blue-600 no-underline text-sm">
+                FAQs
+              </Link>
+              <Link to="/shipping" className="text-gray-600 hover:text-blue-600 no-underline text-sm">
+                Shipping & Returns
+              </Link>
+              <Link to="/size-guide" className="text-gray-600 hover:text-blue-600 no-underline text-sm">
+                Size Guide
+              </Link>
+              <Link to="/track-order" className="text-gray-600 hover:text-blue-600 no-underline text-sm">
+                Track Order
+              </Link>
+            </div>
           </div>
-          
+
           <div>
-            <h3 className="font-medium mb-4">SIGN UP FOR STYLE NEWS</h3>
-            <form className="mb-4">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-black"
-              />
-              <button className="w-full mt-2 bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition">
-                SUBSCRIBE
-              </button>
-            </form>
-            <div className="flex space-x-4">
-              <a href="#" className="text-gray-600 hover:text-black"><Facebook size={20} /></a>
-              <a href="#" className="text-gray-600 hover:text-black"><Instagram size={20} /></a>
-              <a href="#" className="text-gray-600 hover:text-black"><Twitter size={20} /></a>
+            <Text fw={600} mb="md">
+              Company
+            </Text>
+            <div className="flex flex-col gap-2">
+              <Link to="/about" className="text-gray-600 hover:text-blue-600 no-underline text-sm">
+                About Us
+              </Link>
+              <Link to="/careers" className="text-gray-600 hover:text-blue-600 no-underline text-sm">
+                Careers
+              </Link>
+              <Link to="/privacy-policy" className="text-gray-600 hover:text-blue-600 no-underline text-sm">
+                Privacy Policy
+              </Link>
+              <Link to="/terms" className="text-gray-600 hover:text-blue-600 no-underline text-sm">
+                Terms & Conditions
+              </Link>
+              <Link to="/sustainability" className="text-gray-600 hover:text-blue-600 no-underline text-sm">
+                Sustainability
+              </Link>
             </div>
           </div>
         </div>
-        
-        <div className="mt-12 pt-8 border-t">
-          <div className="flex flex-wrap justify-between items-center">
-            <p className="text-sm text-gray-600">© 2024 Aashish. All rights reserved.</p>
-            <div className="flex space-x-4 text-sm text-gray-600">
-              <Link to="/privacy" className="hover:text-black">Privacy Policy</Link>
-              <Link to="/terms" className="hover:text-black">Terms of Service</Link>
-            </div>
+
+        <Divider my="xl" />
+
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <Text size="sm" c="dimmed">
+            © {new Date().getFullYear()} Aashish. All rights reserved.
+          </Text>
+          <div className="flex gap-4">
+            <img src="/payment-visa.svg" alt="Visa" width={32} height={20} />
+            <img src="/payment-mastercard.svg" alt="Mastercard" width={32} height={20} />
+            <img src="/payment-paypal.svg" alt="PayPal" width={32} height={20} />
+            <img src="/payment-apple.svg" alt="Apple Pay" width={32} height={20} />
           </div>
         </div>
-      </div>
+      </Container>
     </footer>
-  );
+  )
 }
+
