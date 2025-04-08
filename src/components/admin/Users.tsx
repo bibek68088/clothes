@@ -1,3 +1,7 @@
+"use client"
+
+import React from "react"
+
 import { useState, useEffect } from "react"
 import {
   Container,
@@ -44,6 +48,14 @@ interface PaginationData {
   totalPages: number
 }
 
+interface FormData {
+  name: string
+  email: string
+  password: string
+  phone: string
+  role: string
+}
+
 const MotionPaper = motion(Paper as any)
 
 export function AdminUsers() {
@@ -56,7 +68,7 @@ export function AdminUsers() {
   const [refreshing, setRefreshing] = useState(false)
   const [viewMode, setViewMode] = useState<"table" | "grid">("table")
   const [showFilters, { toggle: toggleFilters }] = useDisclosure(false)
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: "",
     email: "",
     password: "",
@@ -93,17 +105,15 @@ export function AdminUsers() {
     try {
       setLoading(true)
       const response = await api.get("/admin/users", {
-        params: {
-          page: pagination.page,
-          limit: pagination.limit,
-          search: searchQuery || undefined,
-          role: roleFilter || undefined,
-        },
+        page: pagination.page,
+        limit: pagination.limit,
+        search: searchQuery || undefined,
+        role: roleFilter || undefined,
       })
 
       if (response.data) {
-        if (Array.isArray(response.data)) {
-          setUsers(response.data)
+        if (Array.isArray(response.data.users)) {
+          setUsers(response.data.users)
         } else if (response.data.users) {
           setUsers(response.data.users)
 
@@ -118,8 +128,10 @@ export function AdminUsers() {
         title: "Error",
         message: "Failed to fetch users. Please try again.",
         color: "red",
-        icon: <X size={16} />,
+        icon: React.createElement(X),
       })
+      // Set empty users array to avoid showing stale data
+      setUsers([])
     } finally {
       setLoading(false)
     }
@@ -133,7 +145,7 @@ export function AdminUsers() {
       title: "Success",
       message: "User data refreshed successfully",
       color: "green",
-      icon: <Check size={16} />,
+      icon: React.createElement(Check),
     })
   }
 
@@ -173,7 +185,9 @@ export function AdminUsers() {
   }
 
   const handleSelectChange = (name: string, value: string | null) => {
-    setFormData((prev) => ({ ...prev, [name]: value }))
+    if (value) {
+      setFormData((prev) => ({ ...prev, [name]: value }))
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -183,21 +197,21 @@ export function AdminUsers() {
       if (currentUser) {
         // Update existing user
         const { password, ...updateData } = formData
-        await api.put(`/admin/users/${currentUser.id}`, updateData)
+        const response = await api.put(`/admin/users/${currentUser.id}`, updateData)
         notifications.show({
           title: "Success",
           message: `User ${formData.name} updated successfully`,
           color: "green",
-          icon: <Check size={16} />,
+          icon: React.createElement(Check),
         })
       } else {
         // Create new user
-        await api.post("/admin/users", formData)
+        const response = await api.post("/admin/users", formData)
         notifications.show({
           title: "Success",
           message: `User ${formData.name} created successfully`,
           color: "green",
-          icon: <Check size={16} />,
+          icon: React.createElement(Check),
         })
       }
 
@@ -209,7 +223,7 @@ export function AdminUsers() {
         title: "Error",
         message: "Failed to save user. Please try again.",
         color: "red",
-        icon: <X size={16} />,
+        icon: React.createElement(X),
       })
     }
   }
@@ -226,7 +240,7 @@ export function AdminUsers() {
         title: "Success",
         message: `User ${userName} deleted successfully`,
         color: "green",
-        icon: <Check size={16} />,
+        icon: React.createElement(Check),
       })
     } catch (error) {
       console.error("Error deleting user:", error)
@@ -234,7 +248,7 @@ export function AdminUsers() {
         title: "Error",
         message: "Failed to delete user. Please try again.",
         color: "red",
-        icon: <X size={16} />,
+        icon: React.createElement(X),
       })
     }
   }
@@ -302,7 +316,11 @@ export function AdminUsers() {
                     variant="light"
                     size="md"
                     radius="sm"
-                    leftSection={user.role === "admin" ? <Shield size={12} /> : <User size={12} />}
+                    leftSection={
+                      user.role === "admin"
+                        ? React.createElement(Shield, { size: 12 })
+                        : React.createElement(User, { size: 12 })
+                    }
                   >
                     {user.role}
                   </Badge>
@@ -312,12 +330,12 @@ export function AdminUsers() {
                   <Group gap={8}>
                     <Tooltip label="View Details">
                       <ActionIcon variant="light" color="blue" radius="md">
-                        <Eye size={16} />
+                        {React.createElement(Eye, { size: 16 })}
                       </ActionIcon>
                     </Tooltip>
                     <Tooltip label="Edit User">
                       <ActionIcon variant="light" color="green" onClick={() => openEditModal(user)} radius="md">
-                        <Edit size={16} />
+                        {React.createElement(Edit, { size: 16 })}
                       </ActionIcon>
                     </Tooltip>
                     <Tooltip label="Delete User">
@@ -327,7 +345,7 @@ export function AdminUsers() {
                         onClick={() => handleDeleteUser(user.id, user.name)}
                         radius="md"
                       >
-                        <Trash size={16} />
+                        {React.createElement(Trash, { size: 16 })}
                       </ActionIcon>
                     </Tooltip>
                   </Group>
@@ -375,7 +393,11 @@ export function AdminUsers() {
                 variant="light"
                 size="lg"
                 radius="sm"
-                leftSection={user.role === "admin" ? <Shield size={12} /> : <User size={12} />}
+                leftSection={
+                  user.role === "admin"
+                    ? React.createElement(Shield, { size: 12 })
+                    : React.createElement(User, { size: 12 })
+                }
               >
                 {user.role}
               </Badge>
@@ -403,12 +425,12 @@ export function AdminUsers() {
             <Group gap={8} justify="flex-end">
               <Tooltip label="View Details">
                 <ActionIcon variant="light" color="blue" radius="md">
-                  <Eye size={16} />
+                  {React.createElement(Eye, { size: 16 })}
                 </ActionIcon>
               </Tooltip>
               <Tooltip label="Edit User">
                 <ActionIcon variant="light" color="green" onClick={() => openEditModal(user)} radius="md">
-                  <Edit size={16} />
+                  {React.createElement(Edit, { size: 16 })}
                 </ActionIcon>
               </Tooltip>
               <Tooltip label="Delete User">
@@ -418,7 +440,7 @@ export function AdminUsers() {
                   onClick={() => handleDeleteUser(user.id, user.name)}
                   radius="md"
                 >
-                  <Trash size={16} />
+                  {React.createElement(Trash, { size: 16 })}
                 </ActionIcon>
               </Tooltip>
             </Group>
@@ -452,7 +474,7 @@ export function AdminUsers() {
           <Group justify="space-between" mb="md">
             <div>
               <Title order={2} className="flex items-center gap-2">
-                <User className="text-blue-500" />
+                {React.createElement(User, { className: "text-blue-500" })}
                 User Management
               </Title>
               <Text c="dimmed" size="sm">
@@ -462,13 +484,13 @@ export function AdminUsers() {
             <Group>
               <Button
                 variant="outline"
-                leftSection={<RefreshCw size={16} className={refreshing ? "animate-spin" : ""} />}
+                leftSection={React.createElement(RefreshCw, { size: 16, className: refreshing ? "animate-spin" : "" })}
                 onClick={refreshData}
                 disabled={loading || refreshing}
               >
                 Refresh
               </Button>
-              <Button color="blue" leftSection={<Plus size={16} />} onClick={openCreateModal}>
+              <Button color="blue" leftSection={React.createElement(Plus, { size: 16 })} onClick={openCreateModal}>
                 Add User
               </Button>
             </Group>
@@ -481,7 +503,7 @@ export function AdminUsers() {
                   placeholder="Search by name, email or phone..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.currentTarget.value)}
-                  leftSection={<Search size={16} />}
+                  leftSection={React.createElement(Search, { size: 16 })}
                   radius="md"
                 />
               </form>
@@ -489,8 +511,8 @@ export function AdminUsers() {
               <Group>
                 <Button
                   variant="subtle"
-                  leftSection={<Filter size={16} />}
-                  rightSection={<ChevronDown size={16} />}
+                  leftSection={React.createElement(Filter, { size: 16 })}
+                  rightSection={React.createElement(ChevronDown, { size: 16 })}
                   onClick={toggleFilters}
                 >
                   Filters
@@ -582,12 +604,12 @@ export function AdminUsers() {
             <Title order={3}>
               {currentUser ? (
                 <span className="flex items-center gap-2">
-                  <Edit size={20} className="text-blue-500" />
+                  {React.createElement(Edit, { size: 20, className: "text-blue-500" })}
                   Edit User
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
-                  <Plus size={20} className="text-green-500" />
+                  {React.createElement(Plus, { size: 20, className: "text-green-500" })}
                   Add New User
                 </span>
               )}
@@ -610,7 +632,7 @@ export function AdminUsers() {
                 required
                 radius="md"
                 placeholder="John Doe"
-                leftSection={<User size={16} />}
+                leftSection={React.createElement(User, { size: 16 })}
               />
             </Box>
 
@@ -686,4 +708,6 @@ export function AdminUsers() {
     </AdminLayout>
   )
 }
+
+export default AdminUsers
 

@@ -73,7 +73,7 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-});
+})
 
 // Add request interceptor to add auth token
 api.interceptors.request.use(
@@ -83,7 +83,7 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`; // No need to check if headers exists
     }
-    return config;
+    return config
   },
   (error: AxiosError): Promise<AxiosError> => Promise.reject(error)
 );
