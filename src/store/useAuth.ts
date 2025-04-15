@@ -15,8 +15,8 @@ export const useAuth = create<{
   register: (
     name: string,
     email: string,
-    phone: string,
-    password: string
+    password: string,
+    phone: string
   ) => Promise<any>;
   login: (email: string, password: string) => Promise<any>;
   logout: () => void;
@@ -33,10 +33,10 @@ export const useAuth = create<{
   register: async (
     name: string,
     email: string,
-    phone: string,
-    password: string
+    password: string,
+    phone: string
   ) => {
-    if (!name || !email || !phone || !password) {
+    if (!name || !email || !password || !phone) {
       throw new Error("All fields are required");
     }
 
@@ -46,8 +46,8 @@ export const useAuth = create<{
       const response = await axios.post(`${API_URL}/register`, {
         name,
         email,
-        phone,
         password,
+        phone,
       });
 
       // Check if response contains user and token

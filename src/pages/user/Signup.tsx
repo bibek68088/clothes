@@ -32,8 +32,8 @@ export default function SignUpPage() {
     register: (
       name: string,
       email: string,
-      phone: string,
-      password: string
+      password: string,
+      phone: string
     ) => Promise<void>;
     isLoading: boolean;
   };
@@ -44,7 +44,7 @@ export default function SignUpPage() {
     setErrorMessage(null);
 
     try {
-      await register(name, email, phone, password);
+      await register(name, email, password, phone);
       navigate("/", { replace: true });
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Signup failed");
