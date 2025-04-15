@@ -67,7 +67,7 @@ export const useCart = create<CartState>()(
       error: null,
 
       fetchCart: async () => {
-        const { isAuthenticated } = useAuth.getState();
+        const { isAuthenticated } = useAuth.getState() as { isAuthenticated: boolean };
 
         // Only fetch from API if user is authenticated
         if (!isAuthenticated) return;
@@ -85,7 +85,7 @@ export const useCart = create<CartState>()(
       },
 
       addToCart: async (productId: string, quantity = 1, options = {}) => {
-        const { isAuthenticated } = useAuth.getState();
+        const { isAuthenticated } = useAuth.getState() as { isAuthenticated: boolean };
         set({ isLoading: true, error: null });
 
         try {
@@ -165,7 +165,7 @@ export const useCart = create<CartState>()(
       },
 
       updateCartItem: async (itemId: string, quantity: number) => {
-        const { isAuthenticated } = useAuth.getState();
+        const { isAuthenticated } = useAuth.getState() as { isAuthenticated: boolean };
         set({ isLoading: true, error: null });
 
         try {
@@ -211,7 +211,7 @@ export const useCart = create<CartState>()(
       },
 
       removeFromCart: async (itemId: string) => {
-        const { isAuthenticated } = useAuth.getState();
+        const { isAuthenticated } = useAuth.getState() as { isAuthenticated: boolean };
         set({ isLoading: true, error: null });
 
         try {
@@ -259,7 +259,7 @@ export const useCart = create<CartState>()(
       },
 
       clearCart: async () => {
-        const { isAuthenticated } = useAuth.getState();
+        const { isAuthenticated } = useAuth.getState() as { isAuthenticated: boolean };
         set({ isLoading: true, error: null });
 
         try {
@@ -282,7 +282,7 @@ export const useCart = create<CartState>()(
       },
 
       applyCoupon: async (code: string) => {
-        const { isAuthenticated } = useAuth.getState();
+        const { isAuthenticated } = useAuth.getState() as { isAuthenticated: boolean };
 
         if (!isAuthenticated) {
           set({ error: "You must be logged in to apply a coupon" });
@@ -302,7 +302,7 @@ export const useCart = create<CartState>()(
       },
 
       removeCoupon: async () => {
-        const { isAuthenticated } = useAuth.getState();
+        const { isAuthenticated } = useAuth.getState() as { isAuthenticated: boolean };
 
         if (!isAuthenticated) return;
 
@@ -352,7 +352,10 @@ export const useCart = create<CartState>()(
 
 // Listen for auth changes to sync cart
 useAuth.subscribe((state, prevState) => {
-  if (!prevState.isAuthenticated && state.isAuthenticated) {
+  const currentState = state as { isAuthenticated: boolean };
+  const previousState = prevState as { isAuthenticated: boolean };
+
+  if (!previousState.isAuthenticated && currentState.isAuthenticated) {
     // User just logged in, sync cart
     useCart.getState().syncCartAfterLogin();
   }

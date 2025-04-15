@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { useNavigate, Link } from "react-router-dom"
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import {
   TextInput,
   PasswordInput,
@@ -12,39 +12,37 @@ import {
   Group,
   Container,
   Alert,
-} from "@mantine/core"
-import "@mantine/core/styles.css"
-import { IconBrandFacebook, IconBrandGithub, IconShoppingBag, IconAlertCircle } from "@tabler/icons-react"
-import { useAuth } from "../../store/useAuth"
+} from "@mantine/core";
+import "@mantine/core/styles.css";
+import {
+  IconBrandFacebook,
+  IconBrandGithub,
+  IconShoppingBag,
+  IconAlertCircle,
+} from "@tabler/icons-react";
+import { useAuth } from "../../store/useAuth";
 
-export default function SignupPage() {
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [agreeTerms, setAgreeTerms] = useState(false)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+export default function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const { signup, isLoading } = useAuth()
-  const navigate = useNavigate()
+  const { login, isLoading } = useAuth() as { login: (email: string, password: string) => Promise<void>; isLoading: boolean };
+  const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setErrorMessage(null)
-
-    if (password !== confirmPassword) {
-      setErrorMessage("Passwords don't match")
-      return
-    }
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setErrorMessage(null);
 
     try {
-      await signup(name, email, password)
-      // Redirect to home page after successful signup
-      navigate("/", { replace: true })
+      await login(email, password);
+      // Redirect to home page after successful login
+      navigate("/", { replace: true });
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Signup failed")
+      setErrorMessage(error instanceof Error ? error.message : "Login failed");
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
@@ -60,28 +58,24 @@ export default function SignupPage() {
 
         <Paper radius="md" p="xl" withBorder className="w-full">
           <Title order={2} className="text-center mb-2">
-            Create Account
+            Welcome Back
           </Title>
           <Text c="dimmed" size="sm" className="text-center mb-5">
-            Sign up to start shopping with us
+            Log in to your account
           </Text>
 
           {errorMessage && (
-            <Alert icon={<IconAlertCircle size={16} />} title="Error" color="red" className="mb-4">
+            <Alert
+              icon={<IconAlertCircle size={16} />}
+              title="Error"
+              color="red"
+              className="mb-4"
+            >
               {errorMessage}
             </Alert>
           )}
 
           <form onSubmit={handleSubmit}>
-            <TextInput
-              label="Full Name"
-              placeholder="Full Name"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="mb-3"
-            />
-
             <TextInput
               label="Email"
               placeholder="name@example.com"
@@ -97,51 +91,42 @@ export default function SignupPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mb-3"
-            />
-
-            <PasswordInput
-              label="Confirm Password"
-              placeholder="Confirm your password"
-              required
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
               className="mb-4"
             />
 
-            <Checkbox
-              label={
-                <Text size="sm">
-                  I agree to the{" "}
-                  <Text component="a" href="#" className="text-blue-600 hover:underline">
-                    Terms of Service
-                  </Text>{" "}
-                  and{" "}
-                  <Text component="a" href="#" className="text-blue-600 hover:underline">
-                    Privacy Policy
-                  </Text>
-                </Text>
-              }
-              checked={agreeTerms}
-              onChange={(e) => setAgreeTerms(e.currentTarget.checked)}
-              required
-              className="mb-4"
-            />
+            <Group justify="space-between" className="mb-4">
+              <Checkbox
+                label="Remember me"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.currentTarget.checked)}
+              />
+              <Text
+                component={Link}
+                to="/forgot-password"
+                size="sm"
+                className="text-blue-600 hover:underline"
+              >
+                Forgot password?
+              </Text>
+            </Group>
 
             <Button
               type="submit"
               fullWidth
-              disabled={!agreeTerms}
               loading={isLoading}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              Create Account
+              Log in
             </Button>
 
             <Text c="dimmed" size="sm" className="text-center mt-3">
-              Already have an account?{" "}
-              <Text component={Link} to="/login" className="text-blue-600 hover:underline cursor-pointer">
-                Log in
+              Don't have an account?{" "}
+              <Text
+                component={Link}
+                to="/signup"
+                className="text-blue-600 hover:underline cursor-pointer"
+              >
+                Sign up
               </Text>
             </Text>
           </form>
@@ -167,6 +152,5 @@ export default function SignupPage() {
         </Paper>
       </Container>
     </div>
-  )
+  );
 }
-
