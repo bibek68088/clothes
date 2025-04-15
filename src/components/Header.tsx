@@ -25,22 +25,40 @@ import {
 import { useAuth } from "../store/useAuth";
 import { useCart } from "../store/useCart";
 
+const navLinks = [
+  { label: "Products", to: "/products" },
+  { label: "Categories", to: "/categories" },
+  { label: "Sale", to: "/sale" },
+  { label: "About", to: "/about" },
+];
+
 export function Header() {
   const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] =
     useDisclosure(false);
   const { user, isAuthenticated, logout } = useAuth();
   const { items } = useCart();
   const navigate = useNavigate();
-
   const cartItemCount = items?.length || 0;
+  const isAdmin = user?.role === "admin";
+  const dashboardPath = isAdmin ? "/admin" : "/user/dashboard";
 
   const handleLogout = () => {
     logout();
     navigate("/");
+    closeDrawer();
   };
 
-  const isAdmin = user?.role === "admin";
-  const dashboardPath = isAdmin ? "/admin" : "/user/dashboard";
+  const renderLinks = (onClick?: () => void) =>
+    navLinks.map(({ label, to }) => (
+      <Link
+        key={to}
+        to={to}
+        onClick={onClick}
+        className="text-gray-700 hover:text-blue-600 no-underline py-2"
+      >
+        {label}
+      </Link>
+    ));
 
   return (
     <header className="border-b border-gray-200 bg-white">
@@ -56,30 +74,7 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <Group gap={30} className="hidden md:flex">
-            <Link
-              to="/products"
-              className="text-gray-700 hover:text-blue-600 no-underline"
-            >
-              Products
-            </Link>
-            <Link
-              to="/categories"
-              className="text-gray-700 hover:text-blue-600 no-underline"
-            >
-              Categories
-            </Link>
-            <Link
-              to="/sale"
-              className="text-gray-700 hover:text-blue-600 no-underline"
-            >
-              Sale
-            </Link>
-            <Link
-              to="/about"
-              className="text-gray-700 hover:text-blue-600 no-underline"
-            >
-              About
-            </Link>
+            {renderLinks()}
           </Group>
 
           {/* Actions */}
@@ -90,7 +85,7 @@ export function Header() {
 
             <Link
               to="/wishlist"
-              className="p-2 hover:bg-gray-100 rounded-full relative no-underline"
+              className="p-2 hover:bg-gray-100 rounded-full no-underline"
             >
               <Heart size={20} className="text-gray-700" />
             </Link>
@@ -112,61 +107,64 @@ export function Header() {
               )}
             </Link>
 
-            {isAuthenticated ? (
-              <Menu position="bottom-end" shadow="md" width={200}>
-                <Menu.Target>
-                  <UnstyledButton className="p-2 hover:bg-gray-100 rounded-full">
+            <Menu position="bottom-end" shadow="md" width={200}>
+              <Menu.Target>
+                <UnstyledButton className="p-2 hover:bg-gray-100 rounded-full">
+                  {isAuthenticated ? (
                     <Avatar size="sm" color="blue" radius="xl">
                       {user?.name?.charAt(0) || "U"}
                     </Avatar>
-                  </UnstyledButton>
-                </Menu.Target>
+                  ) : (
+                    <User size={20} className="text-gray-700" />
+                  )}
+                </UnstyledButton>
+              </Menu.Target>
 
-                <Menu.Dropdown>
-                  <Menu.Label>
-                    <Text fw={500}>{user?.name}</Text>
-                    <Text size="xs" c="dimmed">
-                      {user?.email}
-                    </Text>
-                  </Menu.Label>
-
-                  <Menu.Divider />
-
-                  <Menu.Item
-                    leftSection={<LayoutDashboard size={16} />}
-                    component={Link}
-                    to={dashboardPath}
-                  >
-                    Dashboard
-                  </Menu.Item>
-
-                  <Menu.Item
-                    leftSection={<Settings size={16} />}
-                    component={Link}
-                    to="/profile"
-                  >
-                    Settings
-                  </Menu.Item>
-
-                  <Menu.Divider />
-
-                  <Menu.Item
-                    leftSection={<LogOut size={16} />}
-                    onClick={handleLogout}
-                    color="red"
-                  >
-                    Logout
-                  </Menu.Item>
-                </Menu.Dropdown>
-              </Menu>
-            ) : (
-              <Link
-                to="/login"
-                className="p-2 hover:bg-gray-100 rounded-full no-underline"
-              >
-                <User size={20} className="text-gray-700" />
-              </Link>
-            )}
+              <Menu.Dropdown>
+                {isAuthenticated ? (
+                  <>
+                    <Menu.Label>
+                      <Text fw={500}>{user?.name}</Text>
+                      <Text size="xs" c="dimmed">
+                        {user?.email}
+                      </Text>
+                    </Menu.Label>
+                    <Menu.Divider />
+                    <Menu.Item
+                      leftSection={<LayoutDashboard size={16} />}
+                      component={Link}
+                      to={dashboardPath}
+                    >
+                      Dashboard
+                    </Menu.Item>
+                    <Menu.Item
+                      leftSection={<Settings size={16} />}
+                      component={Link}
+                      to="/profile"
+                    >
+                      Settings
+                    </Menu.Item>
+                    <Menu.Divider />
+                    <Menu.Item
+                      leftSection={<LogOut size={16} />}
+                      onClick={handleLogout}
+                      color="red"
+                    >
+                      Logout
+                    </Menu.Item>
+                  </>
+                ) : (
+                  <>
+                    <Menu.Item component={Link} to="/login">
+                      Login
+                    </Menu.Item>
+                    <Menu.Item component={Link} to="/signup">
+                      Sign Up
+                    </Menu.Item>
+                  </>
+                )}
+              </Menu.Dropdown>
+            </Menu>
 
             <Burger
               opened={drawerOpened}
@@ -177,7 +175,7 @@ export function Header() {
         </div>
       </Container>
 
-      {/* Mobile Navigation Drawer */}
+      {/* Mobile Drawer */}
       <Drawer
         opened={drawerOpened}
         onClose={closeDrawer}
@@ -192,59 +190,27 @@ export function Header() {
         zIndex={1000}
       >
         <div className="flex flex-col gap-4">
-          <Link
-            to="/products"
-            className="text-gray-700 hover:text-blue-600 no-underline py-2"
-            onClick={closeDrawer}
-          >
-            Products
-          </Link>
-          <Link
-            to="/categories"
-            className="text-gray-700 hover:text-blue-600 no-underline py-2"
-            onClick={closeDrawer}
-          >
-            Categories
-          </Link>
-          <Link
-            to="/sale"
-            className="text-gray-700 hover:text-blue-600 no-underline py-2"
-            onClick={closeDrawer}
-          >
-            Sale
-          </Link>
-          <Link
-            to="/about"
-            className="text-gray-700 hover:text-blue-600 no-underline py-2"
-            onClick={closeDrawer}
-          >
-            About
-          </Link>
-
+          {renderLinks(closeDrawer)}
           <Divider my="sm" />
-
           {isAuthenticated ? (
             <>
               <Link
                 to={dashboardPath}
-                className="text-gray-700 hover:text-blue-600 no-underline py-2"
                 onClick={closeDrawer}
+                className="text-gray-700 hover:text-blue-600 no-underline py-2"
               >
                 Dashboard
               </Link>
               <Link
                 to="/profile"
-                className="text-gray-700 hover:text-blue-600 no-underline py-2"
                 onClick={closeDrawer}
+                className="text-gray-700 hover:text-blue-600 no-underline py-2"
               >
                 Settings
               </Link>
               <UnstyledButton
+                onClick={handleLogout}
                 className="text-red-600 hover:text-red-700 py-2"
-                onClick={() => {
-                  handleLogout();
-                  closeDrawer();
-                }}
               >
                 Logout
               </UnstyledButton>
@@ -253,15 +219,15 @@ export function Header() {
             <>
               <Link
                 to="/login"
-                className="text-gray-700 hover:text-blue-600 no-underline py-2"
                 onClick={closeDrawer}
+                className="text-gray-700 hover:text-blue-600 no-underline py-2"
               >
                 Login
               </Link>
               <Link
                 to="/signup"
-                className="text-gray-700 hover:text-blue-600 no-underline py-2"
                 onClick={closeDrawer}
+                className="text-gray-700 hover:text-blue-600 no-underline py-2"
               >
                 Sign Up
               </Link>

@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import {
   TextInput,
   PasswordInput,
+  Checkbox,
   Button,
   Paper,
   Title,
@@ -21,16 +22,13 @@ import {
 } from "@tabler/icons-react";
 import { useAuth } from "../../store/useAuth";
 
-export default function SignUpPage() {
+export default function LoginPage() {
   const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const { register, isLoading } = useAuth() as {
-    register: (email: string, password: string, name: string) => Promise<void>;
-    isLoading: boolean;
-  };
+  const { login, isLoading } = useAuth() as { login: (email: string, password: string) => Promise<void>; isLoading: boolean };
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -38,10 +36,11 @@ export default function SignUpPage() {
     setErrorMessage(null);
 
     try {
-      await register(email, password, name);
+      await login(email, password);
+      // Redirect to home page after successful login
       navigate("/", { replace: true });
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Signup failed");
+      setErrorMessage(error instanceof Error ? error.message : "Login failed");
     }
   };
 
@@ -59,10 +58,10 @@ export default function SignUpPage() {
 
         <Paper radius="md" p="xl" withBorder className="w-full">
           <Title order={2} className="text-center mb-2">
-            Create Account
+            Welcome Back
           </Title>
           <Text c="dimmed" size="sm" className="text-center mb-5">
-            Sign up to get started
+            Log in to your account
           </Text>
 
           {errorMessage && (
@@ -78,15 +77,6 @@ export default function SignUpPage() {
 
           <form onSubmit={handleSubmit}>
             <TextInput
-              label="Name"
-              placeholder="Your full name"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="mb-3"
-            />
-
-            <TextInput
               label="Email"
               placeholder="name@example.com"
               required
@@ -97,12 +87,28 @@ export default function SignUpPage() {
 
             <PasswordInput
               label="Password"
-              placeholder="Create a password"
+              placeholder="Your password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="mb-4"
             />
+
+            <Group justify="space-between" className="mb-4">
+              <Checkbox
+                label="Remember me"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.currentTarget.checked)}
+              />
+              <Text
+                component={Link}
+                to="/forgot-password"
+                size="sm"
+                className="text-blue-600 hover:underline"
+              >
+                Forgot password?
+              </Text>
+            </Group>
 
             <Button
               type="submit"
@@ -110,17 +116,17 @@ export default function SignUpPage() {
               loading={isLoading}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              Sign Up
+              Log in
             </Button>
 
             <Text c="dimmed" size="sm" className="text-center mt-3">
-              Already have an account?{" "}
+              Don't have an account?{" "}
               <Text
                 component={Link}
-                to="/login"
+                to="/signup"
                 className="text-blue-600 hover:underline cursor-pointer"
               >
-                Log in
+                Sign up
               </Text>
             </Text>
           </form>

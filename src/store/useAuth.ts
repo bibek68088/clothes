@@ -11,7 +11,7 @@ export const useAuth = create<{
   isLoading: boolean;
   isAuthenticated: boolean;
   error: string | null;
-  signup: (name: string, email: string, password: string) => Promise<any>;
+  register: (name: string, email: string, password: string) => Promise<any>;
   login: (email: string, password: string) => Promise<any>;
   logout: () => void;
   verifyToken: () => Promise<void>;
@@ -24,7 +24,7 @@ export const useAuth = create<{
   error: null,
 
   // Actions
-  signup: async (name: string, email: string, password: string) => {
+  register: async (name: string, email: string, password: string) => {
     if (!name || !email || !password) {
       throw new Error("All fields are required");
     }
