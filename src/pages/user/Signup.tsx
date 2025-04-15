@@ -24,11 +24,17 @@ import { useAuth } from "../../store/useAuth";
 export default function SignUpPage() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const { register, isLoading } = useAuth() as {
-    register: (email: string, password: string, name: string) => Promise<void>;
+    register: (
+      name: string,
+      email: string,
+      phone: string,
+      password: string
+    ) => Promise<void>;
     isLoading: boolean;
   };
   const navigate = useNavigate();
@@ -38,7 +44,7 @@ export default function SignUpPage() {
     setErrorMessage(null);
 
     try {
-      await register(email, password, name);
+      await register(name, email, phone, password);
       navigate("/", { replace: true });
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Signup failed");
@@ -94,7 +100,13 @@ export default function SignUpPage() {
               onChange={(e) => setEmail(e.target.value)}
               className="mb-3"
             />
-
+            <TextInput
+              label="Phone"
+              placeholder="Your phone number"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="mb-3"
+            />
             <PasswordInput
               label="Password"
               placeholder="Create a password"
