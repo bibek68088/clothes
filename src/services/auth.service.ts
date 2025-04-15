@@ -54,7 +54,7 @@ export const login = async (credentials: LoginCredentials): Promise<AuthResponse
     const XIcon = X
     notifications.show({
       title: "Login Failed",
-      message: error.response?.data?.message || "Invalid credentials",
+      message: (error as any)?.response?.data?.message || "Invalid credentials",
       color: "red",
       icon: React.createElement(XIcon),
     })
@@ -86,7 +86,7 @@ export const register = async (userData: RegisterData): Promise<AuthResponse> =>
     const XIcon = X
     notifications.show({
       title: "Registration Failed",
-      message: error.response?.data?.message || "Could not create account",
+      message: (error as any)?.response?.data?.message || "Could not create account",
       color: "red",
       icon: React.createElement(XIcon),
     })
@@ -157,7 +157,7 @@ export const updateProfile = async (userData: Partial<User>): Promise<User> => {
     const XIcon = X
     notifications.show({
       title: "Update Failed",
-      message: error.response?.data?.message || "Could not update profile",
+      message: (error as any).response?.data?.message || "Could not update profile",
       color: "red",
       icon: React.createElement(XIcon),
     })
@@ -183,7 +183,7 @@ export const changePassword = async (currentPassword: string, newPassword: strin
     const XIcon = X
     notifications.show({
       title: "Password Change Failed",
-      message: error.response?.data?.message || "Could not change password",
+      message: (error as any).response?.data?.message || "Could not change password",
       color: "red",
       icon: React.createElement(XIcon),
     })
@@ -209,7 +209,7 @@ export const requestPasswordReset = async (email: string): Promise<void> => {
     const XIcon = X
     notifications.show({
       title: "Request Failed",
-      message: error.response?.data?.message || "Could not send reset email",
+      message: (error as any).response?.data?.message || "Could not send reset email",
       color: "red",
       icon: React.createElement(XIcon),
     })
@@ -235,7 +235,7 @@ export const resetPassword = async (token: string, newPassword: string): Promise
     const XIcon = X
     notifications.show({
       title: "Reset Failed",
-      message: error.response?.data?.message || "Could not reset password",
+      message: (error as any).response?.data?.message || "Could not reset password",
       color: "red",
       icon: React.createElement(XIcon),
     })
@@ -261,7 +261,7 @@ export const verifyAccount = async (token: string): Promise<void> => {
     const XIcon = X
     notifications.show({
       title: "Verification Failed",
-      message: error.response?.data?.message || "Could not verify account",
+      message: (error as any).response?.data?.message || "Could not verify account",
       color: "red",
       icon: React.createElement(XIcon),
     })
