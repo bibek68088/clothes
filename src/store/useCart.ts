@@ -135,7 +135,12 @@ export const useCart = create<CartState>()(
                 product_id: productId,
                 quantity,
                 price: 0, // This would be fetched from product details
-                product: { id: productId, name: "Product", price: 0 }, // Placeholder
+                product: {
+                  id: productId,
+                  name: "Product",
+                  price: 0,
+                  image: "",
+                }, 
                 ...options,
               };
 

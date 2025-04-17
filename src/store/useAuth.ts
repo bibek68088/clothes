@@ -1,101 +1,178 @@
-import { create } from "zustand"
-import { persist } from "zustand/middleware"
-import * as authService from "../services/auth.service"
-import type { User, LoginCredentials, RegisterData } from "../services/auth.service"
+// src/store/useAuth.js
+import { create } from "zustand";
+import axios from "axios";
 
-interface AuthState {
-  user: User | null
-  isAuthenticated: boolean
-  isLoading: boolean
-  error: string | null
+// Configure API base URL
+const API_URL =
+  import.meta.env.VITE_AASHISH_API_URL || "http://localhost:3000/api";
+
+export const useAuth = create<{
+  user: any;
+  token: string | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  error: string | null;
+  register: (
+    name: string,
+    email: string,
+    password: string,
+    phone: string
+  ) => Promise<any>;
+  login: (email: string, password: string) => Promise<any>;
+  logout: () => void;
+  verifyToken: () => Promise<void>;
+}>((set, get) => ({
+  // State
+  user: null,
+  token: localStorage.getItem("token"),
+  isLoading: false,
+  isAuthenticated: !!localStorage.getItem("token"),
+  error: null,
 
   // Actions
-  login: (credentials: LoginCredentials) => Promise<void>
-  register: (userData: RegisterData) => Promise<void>
-  logout: () => void
-  updateProfile: (userData: Partial<User>) => Promise<void>
-  checkAuth: () => void
-}
+  register: async (
+    name: string,
+    email: string,
+    password: string,
+    phone: string
+  ) => {
+    if (!name || !email || !password || !phone) {
+      throw new Error("All fields are required");
+    }
 
-export const useAuth = create<AuthState>()(
-  persist(
-    (set, get) => ({
+    set({ isLoading: true, error: null });
+
+    try {
+      const response = await axios.post(`${API_URL}/register`, {
+        name,
+        email,
+        password,
+        phone,
+      });
+
+      // Check if response contains user and token
+      if (!response.data || !response.data.user || !response.data.token) {
+        throw new Error("Invalid response from server");
+      }
+
+      // Save token to local storage
+      localStorage.setItem("token", response.data.token);
+
+      // Update state
+      set({
+        isLoading: false,
+        isAuthenticated: true,
+        user: response.data.user,
+        token: response.data.token,
+      });
+
+      return response.data;
+    } catch (error) {
+      set({
+        isLoading: false,
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || error.message
+          : "An unexpected error occurred",
+      });
+      throw error;
+    }
+  },
+
+  login: async (email: string, password: string) => {
+    if (!email || !password) {
+      throw new Error("Email and password are required");
+    }
+
+    set({ isLoading: true, error: null });
+
+    try {
+      const response = await axios.post(`${API_URL}/login`, {
+        email,
+        password,
+      });
+
+      // Check if response contains user and token
+      if (!response.data || !response.data.user || !response.data.token) {
+        throw new Error("Invalid response from server");
+      }
+
+      // Save token to local storage
+      localStorage.setItem("token", response.data.token);
+
+      // Update state
+      set({
+        isLoading: false,
+        isAuthenticated: true,
+        user: response.data.user,
+        token: response.data.token,
+      });
+
+      return response.data;
+    } catch (error) {
+      set({
+        isLoading: false,
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || error.message
+          : "An unexpected error occurred",
+      });
+      throw error;
+    }
+  },
+
+  logout: () => {
+    localStorage.removeItem("token");
+    set({
       user: null,
+      token: null,
       isAuthenticated: false,
-      isLoading: false,
-      error: null,
+    });
+  },
 
-      login: async (credentials) => {
-        set({ isLoading: true, error: null })
-        try {
-          const response = await authService.login(credentials)
-          set({
-            user: response.user,
-            isAuthenticated: true,
-            isLoading: false,
-          })
-        } catch (error) {
-          set({
-            isLoading: false,
-            error: (error as any)?.response?.data?.message || "Login failed",
-          })
-          throw error
-        }
-      },
+  verifyToken: async () => {
+    const token = get().token;
 
-      register: async (userData) => {
-        set({ isLoading: true, error: null })
-        try {
-          const response = await authService.register(userData)
-          set({
-            user: response.user,
-            isAuthenticated: true,
-            isLoading: false,
-          })
-        } catch (error) {
-          set({
-            isLoading: false,
-            error: (error as any)?.response?.data?.message || "Registration failed",
-          })
-          throw error
-        }
-      },
+    if (!token) {
+      set({ isAuthenticated: false, user: null });
+      return;
+    }
 
-      logout: () => {
-        authService.logout()
+    set({ isLoading: true });
+
+    try {
+      const response = await axios.get(`${API_URL}/verify`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.data && response.data.user) {
         set({
-          user: null,
+          isLoading: false,
+          isAuthenticated: true,
+          user: response.data.user,
+        });
+      } else {
+        // Invalid response, clear authentication
+        localStorage.removeItem("token");
+        set({
+          isLoading: false,
           isAuthenticated: false,
-        })
-      },
-
-      updateProfile: async (userData) => {
-        set({ isLoading: true, error: null })
-        try {
-          const updatedUser = await authService.updateProfile(userData)
-          set({
-            user: updatedUser,
-            isLoading: false,
-          })
-        } catch (error) {
-          set({
-            isLoading: false,
-            error: (error as any)?.response?.data?.message || "Profile update failed",
-          })
-          throw error
-        }
-      },
-
-      checkAuth: () => {
-        const user = authService.getCurrentUser()
-        const isAuthenticated = authService.isAuthenticated()
-        set({ user, isAuthenticated })
-      },
-    }),
-    {
-      name: "auth-storage",
-      partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated }),
-    },
-  ),
-)
-
+          user: null,
+          token: null,
+        });
+      }
+    } catch (error) {
+      // Token verification failed, clear authentication
+      localStorage.removeItem("token");
+      set({
+        isLoading: false,
+        isAuthenticated: false,
+        user: null,
+        token: null,
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || error.message
+          : "An unexpected error occurred",
+      });
+    }
+  },
+}));
