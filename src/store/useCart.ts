@@ -7,7 +7,7 @@ export interface Product {
   id: string;
   name: string;
   price: number;
-  image: string;
+  image?: string;
   description?: string;
   colors?: string[];
   sizes?: string[];
@@ -18,11 +18,7 @@ export interface CartItem {
   product_id: string;
   quantity: number;
   price: number;
-  product: {
-    id: string;
-    name: string;
-    price: number;
-  };
+  product: Product;
   color?: string;
   size?: string;
 }
@@ -134,7 +130,7 @@ export const useCart = create<CartState>()(
                 id: `local-${Date.now()}`,
                 product_id: productId,
                 quantity,
-                price: 0, // This would be fetched from product details
+                price: 0, 
                 product: {
                   id: productId,
                   name: "Product",

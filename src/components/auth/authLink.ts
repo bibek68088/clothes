@@ -1,14 +1,9 @@
-// api/authLinks.js - Apollo Links for authentication and token refresh
-
 import { setContext } from "@apollo/client/link/context";
 import { onError } from "@apollo/client/link/error";
 import { ApolloClient, InMemoryCache, Observable } from "@apollo/client";
 import { getAuthToken, storeAuthToken } from "../utils/auth";
 import { refreshTokenMutation } from "./mutations";
 
-/**
- * Auth link to attach JWT to outgoing requests
- */
 export const authLink = setContext((_, { headers }) => {
   const token = getAuthToken();
   return {
@@ -19,10 +14,7 @@ export const authLink = setContext((_, { headers }) => {
   };
 });
 
-/**
- * Refreshes the JWT token if it's about to expire
- * @returns {Promise<string>} - Promise resolving to the new token
- */
+
 export const refreshToken = async () => {
   try {
     // Create a new client without auth links to avoid circular dependencies
@@ -53,9 +45,7 @@ export const refreshToken = async () => {
   }
 };
 
-/**
- * Error handling link for token refresh on authentication errors
- */
+
 export const errorLink = onError(
   ({ graphQLErrors, operation, forward }) => {
     if (graphQLErrors) {
