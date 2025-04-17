@@ -3,7 +3,8 @@ import { create } from "zustand";
 import axios from "axios";
 
 // Configure API base URL
-const API_URL = import.meta.env.VITE_AASHISH_API_URL || "http://localhost:5000/api";
+const API_URL =
+  import.meta.env.VITE_AASHISH_API_URL || "http://localhost:3000/api";
 
 export const useAuth = create<{
   user: any;
@@ -11,7 +12,12 @@ export const useAuth = create<{
   isLoading: boolean;
   isAuthenticated: boolean;
   error: string | null;
-  signup: (name: string, email: string, password: string) => Promise<any>;
+  register: (
+    name: string,
+    email: string,
+    password: string,
+    phone: string
+  ) => Promise<any>;
   login: (email: string, password: string) => Promise<any>;
   logout: () => void;
   verifyToken: () => Promise<void>;
@@ -24,18 +30,24 @@ export const useAuth = create<{
   error: null,
 
   // Actions
-  signup: async (name: string, email: string, password: string) => {
-    if (!name || !email || !password) {
+  register: async (
+    name: string,
+    email: string,
+    password: string,
+    phone: string
+  ) => {
+    if (!name || !email || !password || !phone) {
       throw new Error("All fields are required");
     }
 
     set({ isLoading: true, error: null });
 
     try {
-      const response = await axios.post(`${API_URL}/auth/signup`, {
+      const response = await axios.post(`${API_URL}/register`, {
         name,
         email,
         password,
+        phone,
       });
 
       // Check if response contains user and token
@@ -58,7 +70,9 @@ export const useAuth = create<{
     } catch (error) {
       set({
         isLoading: false,
-        error: axios.isAxiosError(error) ? error.response?.data?.message || error.message : "An unexpected error occurred",
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || error.message
+          : "An unexpected error occurred",
       });
       throw error;
     }
@@ -72,7 +86,7 @@ export const useAuth = create<{
     set({ isLoading: true, error: null });
 
     try {
-      const response = await axios.post(`${API_URL}/auth/login`, {
+      const response = await axios.post(`${API_URL}/login`, {
         email,
         password,
       });
@@ -97,7 +111,9 @@ export const useAuth = create<{
     } catch (error) {
       set({
         isLoading: false,
-        error: axios.isAxiosError(error) ? error.response?.data?.message || error.message : "An unexpected error occurred",
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || error.message
+          : "An unexpected error occurred",
       });
       throw error;
     }
@@ -123,7 +139,7 @@ export const useAuth = create<{
     set({ isLoading: true });
 
     try {
-      const response = await axios.get(`${API_URL}/auth/verify`, {
+      const response = await axios.get(`${API_URL}/verify`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -153,7 +169,9 @@ export const useAuth = create<{
         isAuthenticated: false,
         user: null,
         token: null,
-        error: axios.isAxiosError(error) ? error.response?.data?.message || error.message : "An unexpected error occurred",
+        error: axios.isAxiosError(error)
+          ? error.response?.data?.message || error.message
+          : "An unexpected error occurred",
       });
     }
   },
