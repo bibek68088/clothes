@@ -1,7 +1,6 @@
-// src/pages/ProductPage.tsx
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getProductById } from "../services/productService";
+import { productService} from "../services/productService";
 import { useCart } from "../store/useCart";
 import { useAuth } from "../store/useAuth";
 import { Button, Alert } from "@mantine/core";
@@ -10,7 +9,7 @@ import { IconAlertCircle, IconShoppingCart } from "@tabler/icons-react";
 
 export function ProductPage() {
   const { id } = useParams();
-  const { addItem } = useCart();
+  const { addToCart } = useCart();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [product, setProduct] = useState<any>(null);
@@ -23,7 +22,7 @@ export function ProductPage() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const data = await getProductById(id || "");
+        const data = await productService.getProduct(id || "");
         setProduct(data);
       } catch (err) {
         setError("Failed to load product");
@@ -56,7 +55,7 @@ export function ProductPage() {
 
     try {
       // Add the item to cart with selected color and size
-      await addItem(product, {
+      await addToCart(product.id, 1, {
         color: selectedColor,
         size: selectedSize,
       });

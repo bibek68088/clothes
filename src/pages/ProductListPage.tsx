@@ -1,24 +1,49 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { Link, useSearchParams } from "react-router-dom"
 import { Container, Title, Grid, Card, Image, Text, Badge, Group, Pagination, Loader } from "@mantine/core"
 import { ProductFilters } from "../components/products/ProductFilters"
 import { ProductSort } from "../components/products/ProductSort"
 import { ProductSearch } from "../components/products/ProductSearch"
-import { getProducts } from "../services/productService"
+import { productService } from "../services/productService"
 import { WishlistButton } from "../components/wishlist/WishlistButton"
 
 interface Product {
   id: string
   name: string
   price: number
-  image_url: string
-  description: string
+  image_url?: string
+  description?: string
   colors: string[]
   sizes: string[]
   average_rating: number | null
   review_count: number
+}
+
+interface Pagination {
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+}
+
+interface FilterValues {
+  priceRange: { min: number; max: number }
+  colors: string[]
+  sizes: string[]
+}
+
+interface ActiveFilters {
+  minPrice?: number
+  maxPrice?: number
+  colors: string[]
+  sizes: string[]
+  rating?: number
+}
+
+interface ProductResponse {
+  products: Product[]
+  pagination: Pagination
+  filters: FilterValues
 }
 
 export function ProductListPage() {
@@ -26,28 +51,28 @@ export function ProductListPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [pagination, setPagination] = useState({
+  const [pagination, setPagination] = useState<Pagination>({
     total: 0,
     page: 1,
     limit: 12,
     totalPages: 0,
   })
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<FilterValues>({
     priceRange: { min: 0, max: 1000 },
     colors: [],
     sizes: [],
   })
 
   // Get current filter values from URL
-  const currentPage = Number.parseInt(searchParams.get("page") || "1")
+  const currentPage = parseInt(searchParams.get("page") || "1", 10)
   const currentSort = searchParams.get("sort") || "created_at:desc"
   const currentSearch = searchParams.get("search") || ""
   const currentCategory = searchParams.get("category") || ""
-  const currentMinPrice = searchParams.get("minPrice") ? Number.parseFloat(searchParams.get("minPrice")!) : undefined
-  const currentMaxPrice = searchParams.get("maxPrice") ? Number.parseFloat(searchParams.get("maxPrice")!) : undefined
+  const currentMinPrice = searchParams.get("minPrice") ? parseFloat(searchParams.get("minPrice") || "0") : undefined
+  const currentMaxPrice = searchParams.get("maxPrice") ? parseFloat(searchParams.get("maxPrice") || "0") : undefined
   const currentColors = searchParams.get("colors") ? searchParams.get("colors")!.split(",") : []
   const currentSizes = searchParams.get("sizes") ? searchParams.get("sizes")!.split(",") : []
-  const currentRating = searchParams.get("rating") ? Number.parseInt(searchParams.get("rating")!) : undefined
+  const currentRating = searchParams.get("rating") ? parseInt(searchParams.get("rating") || "0", 10) : undefined
 
   const fetchProducts = async () => {
     try {
@@ -62,13 +87,13 @@ export function ProductListPage() {
 
       if (currentSearch) params.search = currentSearch
       if (currentCategory) params.category = currentCategory
-      if (currentMinPrice) params.minPrice = currentMinPrice.toString()
-      if (currentMaxPrice) params.maxPrice = currentMaxPrice.toString()
+      if (currentMinPrice !== undefined) params.minPrice = currentMinPrice.toString()
+      if (currentMaxPrice !== undefined) params.maxPrice = currentMaxPrice.toString()
       if (currentColors.length > 0) params.colors = currentColors.join(",")
       if (currentSizes.length > 0) params.sizes = currentSizes.join(",")
-      if (currentRating) params.rating = currentRating.toString()
+      if (currentRating !== undefined) params.rating = currentRating.toString()
 
-      const data = await getProducts(params)
+      const data = await productService.getProducts(params) as ProductResponse
 
       setProducts(data.products)
       setPagination(data.pagination)
@@ -110,7 +135,15 @@ export function ProductListPage() {
     setSearchParams(newParams)
   }
 
-  const handleFilterChange = (newFilters: any) => {
+  interface FilterChangeParams {
+    minPrice?: number
+    maxPrice?: number
+    colors?: string[]
+    sizes?: string[]
+    rating?: number
+  }
+
+  const handleFilterChange = (newFilters: FilterChangeParams) => {
     const newParams = new URLSearchParams(searchParams)
 
     // Update or remove filter params
@@ -138,7 +171,7 @@ export function ProductListPage() {
       newParams.delete("sizes")
     }
 
-    if (newFilters.rating) {
+    if (newFilters.rating !== undefined) {
       newParams.set("rating", newFilters.rating.toString())
     } else {
       newParams.delete("rating")
@@ -146,6 +179,14 @@ export function ProductListPage() {
 
     newParams.set("page", "1") // Reset to first page
     setSearchParams(newParams)
+  }
+
+  const activeFilters: ActiveFilters = {
+    minPrice: currentMinPrice,
+    maxPrice: currentMaxPrice,
+    colors: currentColors,
+    sizes: currentSizes,
+    rating: currentRating
   }
 
   return (
@@ -159,13 +200,7 @@ export function ProductListPage() {
         <Grid.Col span={{ base: 12, md: 3 }}>
           <ProductFilters
             filters={filters}
-            activeFilters={{
-              minPrice: currentMinPrice,
-              maxPrice: currentMaxPrice,
-              colors: currentColors,
-              sizes: currentSizes,
-              rating: currentRating,
-            }}
+            activeFilters={activeFilters}
             onFilterChange={handleFilterChange}
           />
         </Grid.Col>
@@ -206,7 +241,7 @@ export function ProductListPage() {
                         <Text fw={500} component={Link} to={`/product/${product.id}`}>
                           {product.name}
                         </Text>
-                        {product.average_rating && (
+                        {product.average_rating !== null && (
                           <Badge color="blue">
                             {product.average_rating.toFixed(1)} ★ ({product.review_count})
                           </Badge>
@@ -214,7 +249,7 @@ export function ProductListPage() {
                       </Group>
 
                       <Text size="sm" color="dimmed" lineClamp={2}>
-                        {product.description}
+                        {product.description || ""}
                       </Text>
 
                       <Text fw={700} size="lg" mt="md">
@@ -250,4 +285,3 @@ export function ProductListPage() {
     </Container>
   )
 }
-

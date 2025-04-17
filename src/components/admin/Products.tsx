@@ -1,5 +1,5 @@
-import React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect } from "react";
+import type { FormEvent, ChangeEvent } from "react";
 import {
   Container,
   Title,
@@ -23,57 +23,75 @@ import {
   NumberInput,
   Textarea,
   MultiSelect,
-  useMantineTheme,
-} from "@mantine/core"
-import { useDisclosure } from "@mantine/hooks"
-import { notifications } from "@mantine/notifications"
-import { Plus, Search, Edit, Trash, Eye, Tag, Check, X, RefreshCw, Filter, ChevronDown } from "lucide-react"
-import { motion } from "framer-motion"
-import { AdminLayout } from "../../components/admin/AdminLayout"
-import api from "../../services/api"
+} from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
+import { notifications } from "@mantine/notifications";
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash,
+  Eye,
+  Tag,
+  Check,
+  RefreshCw,
+  Filter,
+  ChevronDown,
+} from "lucide-react";
+import { motion } from "framer-motion";
+import { AdminLayout } from "./AdminLayout";
+import { productService } from "../../services/productService";
 
+// Define the Product interface separately
 interface Product {
-  id: string
-  name: string
-  price: number
-  image_url?: string
-  description?: string
-  colors?: string[]
-  sizes?: string[]
-  stock_quantity?: number
-  average_rating?: number
-  review_count?: number
-}
-
-interface PaginationData {
-  total: number
-  page: number
-  limit: number
-  totalPages: number
+  id: string;
+  name: string;
+  price: number;
+  description?: string;
+  image_url?: string;
+  colors: string[];
+  sizes: string[];
+  stock_quantity: number;
+  category_id: string;
+  average_rating?: number;
+  review_count?: number;
 }
 
 interface FormData {
-  name: string
-  price: number
-  description: string
-  image_url: string
-  colors: string[]
-  sizes: string[]
-  stock_quantity: number
+  name: string;
+  price: number;
+  description: string;
+  image_url: string;
+  colors: string[];
+  sizes: string[];
+  stock_quantity: number;
+  category_id: string;
 }
 
-const MotionPaper = motion(Paper as any)
+interface Category {
+  value: string;
+  label: string;
+}
+
+interface PaginationData {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+// This avoids the "any" type for the motion component
+const MotionPaper = motion(Paper as any);
 
 export function AdminProducts() {
-  const theme = useMantineTheme()
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [modalOpen, setModalOpen] = useState(false)
-  const [currentProduct, setCurrentProduct] = useState<Product | null>(null)
-  const [refreshing, setRefreshing] = useState(false)
-  const [viewMode, setViewMode] = useState<"table" | "grid">("table")
-  const [showFilters, { toggle: toggleFilters }] = useDisclosure(false)
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [viewMode, setViewMode] = useState<"table" | "grid">("table");
+  const [showFilters, { toggle: toggleFilters }] = useDisclosure(false);
   const [formData, setFormData] = useState<FormData>({
     name: "",
     price: 0,
@@ -82,16 +100,18 @@ export function AdminProducts() {
     colors: [],
     sizes: [],
     stock_quantity: 0,
-  })
+    category_id: "",
+  });
   const [pagination, setPagination] = useState<PaginationData>({
     total: 0,
     page: 1,
     limit: 10,
     totalPages: 0,
-  })
-  const [priceFilter, setPriceFilter] = useState<[number, number] | null>(null)
-  const [colorFilter, setColorFilter] = useState<string | null>(null)
-  const [sizeFilter, setSizeFilter] = useState<string | null>(null)
+  });
+  const [priceFilter, setPriceFilter] = useState<[number, number] | null>(null);
+  const [colorFilter, setColorFilter] = useState<string | null>(null);
+  const [sizeFilter, setSizeFilter] = useState<string | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   // Available colors and sizes for the form
   const availableColors = [
@@ -105,7 +125,7 @@ export function AdminProducts() {
     { value: "Brown", label: "Brown" },
     { value: "Pink", label: "Pink" },
     { value: "Purple", label: "Purple" },
-  ]
+  ];
 
   const availableSizes = [
     { value: "XS", label: "XS" },
@@ -120,7 +140,7 @@ export function AdminProducts() {
     { value: "36", label: "36" },
     { value: "38", label: "38" },
     { value: "40", label: "40" },
-  ]
+  ];
 
   // Animation variants for list items
   const listItemVariants = {
@@ -134,122 +154,127 @@ export function AdminProducts() {
         ease: "easeOut",
       },
     }),
-  }
+  };
 
   useEffect(() => {
-    fetchProducts()
-  }, [pagination.page, searchQuery, priceFilter, colorFilter, sizeFilter])
+    fetchProducts();
+    fetchCategories();
+  }, [pagination.page, searchQuery, priceFilter, colorFilter, sizeFilter]);
+
+  const fetchCategories = async () => {
+    try {
+      const apiUrl = import.meta.env.VITE_AASHISH_API_URL;
+      if (!apiUrl) {
+        console.error("API URL environment variable is not set");
+        return;
+      }
+
+      const response = await fetch(`${apiUrl}/categories`);
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch categories: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.categories && Array.isArray(data.categories)) {
+        setCategories(
+          data.categories.map((cat: any) => ({
+            value: cat.id,
+            label: cat.name,
+          }))
+        );
+      } else {
+        console.error("Unexpected response format:", data);
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
 
   const fetchProducts = async () => {
     try {
-      setLoading(true)
+      setLoading(true);
 
       // Build filter parameters
       const params: Record<string, any> = {
         page: pagination.page,
         limit: pagination.limit,
-        search: searchQuery || undefined,
+      };
+
+      if (searchQuery) {
+        params.search = searchQuery;
       }
 
       if (priceFilter) {
-        params.minPrice = priceFilter[0]
-        params.maxPrice = priceFilter[1]
+        params.minPrice = priceFilter[0];
+        params.maxPrice = priceFilter[1];
       }
 
       if (colorFilter) {
-        params.color = colorFilter
+        params.color = colorFilter;
       }
 
       if (sizeFilter) {
-        params.size = sizeFilter
+        params.size = sizeFilter;
       }
 
-      // Use the correct endpoint for admin products
-      const response = await api.get("/admin/products", params)
+      const response = await productService.getProducts(params);
 
-      if (response.data) {
-        if (Array.isArray(response.data.products)) {
-          setProducts(response.data.products)
-        } else if (response.data.products) {
-          setProducts(response.data.products)
-
-          if (response.data.pagination) {
-            setPagination(response.data.pagination)
-          }
+      if (response && response.products && Array.isArray(response.products)) {
+        setProducts(
+          response.products.map((product: any) => ({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            description: product.description || "",
+            image_url: product.image_url || "",
+            colors: product.colors || [],
+            sizes: product.sizes || [],
+            stock_quantity: product.stock_quantity || 0,
+            category_id: product.category_id,
+            average_rating: product.average_rating || 0,
+            review_count: product.review_count || 0,
+          }))
+        );
+        if (response.pagination) {
+          setPagination(response.pagination);
         }
+      } else {
+        console.error("Unexpected response format:", response);
       }
     } catch (error) {
-      console.error("Error fetching products:", error)
-
-      // Show a more helpful error message
-      let errorMessage = "Failed to fetch products. Please try again."
-      if ((error as any).response?.data?.message) {
-        errorMessage = (error as any).response.data.message
-      } else if (import.meta.env.DEV) {
-        errorMessage += " (Using mock data in development mode)"
-      }
-
+      console.error("Error fetching products:", error);
       notifications.show({
         title: "Error",
-        message: errorMessage,
+        message: "Failed to load products",
         color: "red",
-        icon: React.createElement(X),
-      })
-
-      // In development mode, set some mock products so the UI isn't empty
-      if (import.meta.env.DEV) {
-        setProducts([
-          {
-            id: "1",
-            name: "Classic Tee (Mock)",
-            price: 19.99,
-            image_url: "/placeholder.svg?height=100&width=100",
-            description: "A comfortable and stylish tee for everyday wear.",
-            colors: ["Black", "White", "Gray"],
-            sizes: ["S", "M", "L", "XL"],
-            stock_quantity: 100,
-            average_rating: 4.5,
-            review_count: 28,
-          },
-          {
-            id: "2",
-            name: "Slim Fit Jeans (Mock)",
-            price: 59.99,
-            image_url: "/placeholder.svg?height=100&width=100",
-            description: "Modern slim fit jeans made from premium denim.",
-            colors: ["Blue", "Black"],
-            sizes: ["30", "32", "34", "36"],
-            stock_quantity: 75,
-            average_rating: 4.2,
-            review_count: 16,
-          },
-        ])
-      }
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const refreshData = async () => {
-    setRefreshing(true)
-    await fetchProducts()
-    setRefreshing(false)
+    setRefreshing(true);
+    await fetchProducts();
+    setRefreshing(false);
     notifications.show({
       title: "Success",
       message: "Product data refreshed successfully",
       color: "green",
-      icon: React.createElement(Check),
-    })
-  }
+      icon: <Check size={16} />,
+    });
+  };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    setPagination((prev) => ({ ...prev, page: 1 }))
-    fetchProducts()
-  }
+  const handleSearch = (e: FormEvent) => {
+    e.preventDefault();
+    setPagination((prev) => ({ ...prev, page: 1 }));
+    fetchProducts();
+  };
 
   const openCreateModal = () => {
-    setCurrentProduct(null)
+    setCurrentProduct(null);
     setFormData({
       name: "",
       price: 0,
@@ -258,12 +283,13 @@ export function AdminProducts() {
       colors: [],
       sizes: [],
       stock_quantity: 0,
-    })
-    setModalOpen(true)
-  }
+      category_id: "",
+    });
+    setModalOpen(true);
+  };
 
   const openEditModal = (product: Product) => {
-    setCurrentProduct(product)
+    setCurrentProduct(product);
     setFormData({
       name: product.name,
       price: product.price,
@@ -272,107 +298,97 @@ export function AdminProducts() {
       colors: product.colors || [],
       sizes: product.sizes || [],
       stock_quantity: product.stock_quantity || 0,
-    })
-    setModalOpen(true)
-  }
+      category_id: product.category_id,
+    });
+    setModalOpen(true);
+  };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleNumberInputChange = (name: string, value: number) => {
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-  const handleTextAreaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+  const handleTextAreaChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleMultiSelectChange = (name: string, value: string[]) => {
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSelectChange = (name: string, value: string | null) => {
+    if (value) {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
 
     try {
       if (currentProduct) {
         // Update existing product
-        await api.put(`/admin/products/${currentProduct.id}`, formData)
+        await productService.updateProduct(currentProduct.id, formData);
         notifications.show({
           title: "Success",
           message: `Product ${formData.name} updated successfully`,
           color: "green",
-          icon: React.createElement(Check),
-        })
+          icon: <Check size={16} />,
+        });
       } else {
         // Create new product
-        await api.post("/admin/products", formData)
+        await productService.createProduct(formData);
         notifications.show({
           title: "Success",
           message: `Product ${formData.name} created successfully`,
           color: "green",
-          icon: React.createElement(Check),
-        })
+          icon: <Check size={16} />,
+        });
       }
 
-      setModalOpen(false)
-      fetchProducts()
+      setModalOpen(false);
+      fetchProducts();
     } catch (error) {
-      console.error("Error saving product:", error)
-
-      // Show a more helpful error message
-      let errorMessage = "Failed to save product. Please try again."
-      if ((error as any).response?.data?.message) {
-        errorMessage = (error as any).response.data.message
-      } else if (import.meta.env.DEV) {
-        errorMessage += " (Using mock data in development mode)"
-      }
-
+      console.error("Error saving product:", error);
       notifications.show({
         title: "Error",
-        message: errorMessage,
+        message: `Failed to ${currentProduct ? "update" : "create"} product`,
         color: "red",
-        icon: React.createElement(X),
-      })
+      });
     }
-  }
+  };
 
-  const handleDeleteProduct = async (productId: string, productName: string) => {
+  const handleDeleteProduct = async (
+    productId: string,
+    productName: string
+  ) => {
     if (!window.confirm(`Are you sure you want to delete ${productName}?`)) {
-      return
+      return;
     }
 
     try {
-      await api.delete(`/admin/products/${productId}`)
-      fetchProducts()
+      await productService.deleteProduct(productId);
+      fetchProducts();
       notifications.show({
         title: "Success",
         message: `Product ${productName} deleted successfully`,
         color: "green",
-        icon: React.createElement(Check),
-      })
+        icon: <Check size={16} />,
+      });
     } catch (error) {
-      console.error("Error deleting product:", error)
-
-      // Show a more helpful error message
-      let errorMessage = "Failed to delete product. Please try again."
-      if ((error as any).response?.data?.message) {
-        errorMessage = (error as any).response.data.message
-      } else if (import.meta.env.DEV) {
-        errorMessage += " (Using mock data in development mode)"
-      }
-
+      console.error("Error deleting product:", error);
       notifications.show({
         title: "Error",
-        message: errorMessage,
+        message: `Failed to delete product ${productName}`,
         color: "red",
-        icon: React.createElement(X),
-      })
+      });
     }
-  }
+  };
 
   const renderTableView = () => (
     <Paper shadow="sm" radius="md" p="md" withBorder>
@@ -397,14 +413,24 @@ export function AdminProducts() {
             </Table.Tr>
           ) : (
             products.map((product, index) => (
-              <motion.tr key={product.id} custom={index} initial="hidden" animate="visible" variants={listItemVariants}>
+              <motion.tr
+                key={product.id}
+                custom={index}
+                initial="hidden"
+                animate="visible"
+                variants={listItemVariants}
+              >
                 <Table.Td>
                   <Group gap="sm">
                     <Image
-                      src={product.image_url || "/placeholder.svg?height=40&width=40"}
+                      src={
+                        product.image_url ||
+                        "/placeholder.svg?height=40&width=40"
+                      }
                       width={40}
                       height={40}
                       radius="md"
+                      alt={product.name}
                     />
                     <div>
                       <Text fw={500}>{product.name}</Text>
@@ -417,10 +443,10 @@ export function AdminProducts() {
                 <Table.Td>${product.price.toFixed(2)}</Table.Td>
                 <Table.Td>
                   <Badge
-                    color={product.stock_quantity && product.stock_quantity > 10 ? "green" : "yellow"}
+                    color={product.stock_quantity > 10 ? "green" : "yellow"}
                     variant="light"
                   >
-                    {product.stock_quantity || 0} in stock
+                    {product.stock_quantity} in stock
                   </Badge>
                 </Table.Td>
                 <Table.Td>
@@ -428,7 +454,7 @@ export function AdminProducts() {
                     <Group gap={4}>
                       <Text>{product.average_rating.toFixed(1)}</Text>
                       <Text size="xs" c="dimmed">
-                        ({product.review_count} reviews)
+                        ({product.review_count || 0} reviews)
                       </Text>
                     </Group>
                   ) : (
@@ -439,22 +465,29 @@ export function AdminProducts() {
                   <Group gap={8}>
                     <Tooltip label="View Details">
                       <ActionIcon variant="light" color="blue" radius="md">
-                        {React.createElement(Eye, { size: 16 })}
+                        <Eye size={16} />
                       </ActionIcon>
                     </Tooltip>
                     <Tooltip label="Edit Product">
-                      <ActionIcon variant="light" color="green" onClick={() => openEditModal(product)} radius="md">
-                        {React.createElement(Edit, { size: 16 })}
+                      <ActionIcon
+                        variant="light"
+                        color="green"
+                        onClick={() => openEditModal(product)}
+                        radius="md"
+                      >
+                        <Edit size={16} />
                       </ActionIcon>
                     </Tooltip>
                     <Tooltip label="Delete Product">
                       <ActionIcon
                         variant="light"
                         color="red"
-                        onClick={() => handleDeleteProduct(product.id, product.name)}
+                        onClick={() =>
+                          handleDeleteProduct(product.id, product.name)
+                        }
                         radius="md"
                       >
-                        {React.createElement(Trash, { size: 16 })}
+                        <Trash size={16} />
                       </ActionIcon>
                     </Tooltip>
                   </Group>
@@ -465,7 +498,7 @@ export function AdminProducts() {
         </Table.Tbody>
       </Table>
     </Paper>
-  )
+  );
 
   const renderGridView = () => (
     <Box>
@@ -485,12 +518,19 @@ export function AdminProducts() {
           >
             <div className="relative">
               <Image
-                src={product.image_url || "/placeholder.svg?height=160&width=100%"}
+                src={
+                  product.image_url || "/placeholder.svg?height=160&width=100%"
+                }
                 height={160}
                 radius="md"
                 className="mb-3 w-full object-cover"
+                alt={product.name}
               />
-              <Badge className="absolute top-2 right-2" color="blue" variant="filled">
+              <Badge
+                className="absolute top-2 right-2"
+                color="blue"
+                variant="filled"
+              >
                 ${product.price.toFixed(2)}
               </Badge>
             </div>
@@ -503,14 +543,18 @@ export function AdminProducts() {
               {product.description || "No description available"}
             </Text>
 
-            <Group position="apart" className="mb-2">
-              <Badge color={product.stock_quantity && product.stock_quantity > 10 ? "green" : "yellow"} variant="light">
-                {product.stock_quantity || 0} in stock
+            <Group justify="space-between" className="mb-2">
+              <Badge
+                color={product.stock_quantity > 10 ? "green" : "yellow"}
+                variant="light"
+              >
+                {product.stock_quantity} in stock
               </Badge>
 
               {product.average_rating ? (
                 <Badge color="gray" variant="outline">
-                  {product.average_rating.toFixed(1)} ★ ({product.review_count})
+                  {product.average_rating.toFixed(1)} ★ (
+                  {product.review_count || 0})
                 </Badge>
               ) : (
                 <Badge color="gray" variant="outline">
@@ -539,12 +583,17 @@ export function AdminProducts() {
             <Group gap={8} className="mt-auto">
               <Tooltip label="View Details">
                 <ActionIcon variant="light" color="blue" radius="md">
-                  {React.createElement(Eye, { size: 16 })}
+                  <Eye size={16} />
                 </ActionIcon>
               </Tooltip>
               <Tooltip label="Edit Product">
-                <ActionIcon variant="light" color="green" onClick={() => openEditModal(product)} radius="md">
-                  {React.createElement(Edit, { size: 16 })}
+                <ActionIcon
+                  variant="light"
+                  color="green"
+                  onClick={() => openEditModal(product)}
+                  radius="md"
+                >
+                  <Edit size={16} />
                 </ActionIcon>
               </Tooltip>
               <Tooltip label="Delete Product">
@@ -554,7 +603,7 @@ export function AdminProducts() {
                   onClick={() => handleDeleteProduct(product.id, product.name)}
                   radius="md"
                 >
-                  {React.createElement(Trash, { size: 16 })}
+                  <Trash size={16} />
                 </ActionIcon>
               </Tooltip>
             </Group>
@@ -570,7 +619,7 @@ export function AdminProducts() {
         </Paper>
       )}
     </Box>
-  )
+  );
 
   return (
     <AdminLayout>
@@ -588,7 +637,7 @@ export function AdminProducts() {
           <Group justify="space-between" mb="md">
             <div>
               <Title order={2} className="flex items-center gap-2">
-                {React.createElement(Tag, { className: "text-blue-500" })}
+                <Tag className="text-blue-500" />
                 Product Management
               </Title>
               <Text c="dimmed" size="sm">
@@ -598,13 +647,22 @@ export function AdminProducts() {
             <Group>
               <Button
                 variant="outline"
-                leftSection={React.createElement(RefreshCw, { size: 16, className: refreshing ? "animate-spin" : "" })}
+                leftSection={
+                  <RefreshCw
+                    size={16}
+                    className={refreshing ? "animate-spin" : ""}
+                  />
+                }
                 onClick={refreshData}
                 disabled={loading || refreshing}
               >
                 Refresh
               </Button>
-              <Button color="blue" leftSection={React.createElement(Plus, { size: 16 })} onClick={openCreateModal}>
+              <Button
+                color="blue"
+                leftSection={<Plus size={16} />}
+                onClick={openCreateModal}
+              >
                 Add Product
               </Button>
             </Group>
@@ -617,7 +675,7 @@ export function AdminProducts() {
                   placeholder="Search products by name or description..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.currentTarget.value)}
-                  leftSection={React.createElement(Search, { size: 16 })}
+                  leftSection={<Search size={16} />}
                   radius="md"
                 />
               </form>
@@ -625,8 +683,8 @@ export function AdminProducts() {
               <Group>
                 <Button
                   variant="subtle"
-                  leftSection={React.createElement(Filter, { size: 16 })}
-                  rightSection={React.createElement(ChevronDown, { size: 16 })}
+                  leftSection={<Filter size={16} />}
+                  rightSection={<ChevronDown size={16} />}
                   onClick={toggleFilters}
                 >
                   Filters
@@ -634,7 +692,12 @@ export function AdminProducts() {
               </Group>
             </Group>
 
-            <Transition mounted={showFilters} transition="slide-down" duration={200} timingFunction="ease">
+            <Transition
+              mounted={showFilters}
+              transition="slide-down"
+              duration={200}
+              timingFunction="ease"
+            >
               {(styles) => (
                 <Box style={styles} mb="md">
                   <Paper p="md" radius="md" bg="gray.0">
@@ -709,7 +772,9 @@ export function AdminProducts() {
                 <Pagination
                   total={pagination.totalPages}
                   value={pagination.page}
-                  onChange={(page) => setPagination((prev) => ({ ...prev, page }))}
+                  onChange={(page) =>
+                    setPagination((prev) => ({ ...prev, page }))
+                  }
                   radius="md"
                   withEdges
                 />
@@ -725,12 +790,12 @@ export function AdminProducts() {
             <Title order={3}>
               {currentProduct ? (
                 <span className="flex items-center gap-2">
-                  {React.createElement(Edit, { size: 20, className: "text-blue-500" })}
+                  <Edit size={20} className="text-blue-500" />
                   Edit Product
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
-                  {React.createElement(Plus, { size: 20, className: "text-green-500" })}
+                  <Plus size={20} className="text-green-500" />
                   Add New Product
                 </span>
               )}
@@ -761,10 +826,12 @@ export function AdminProducts() {
                 label="Price ($)"
                 name="price"
                 value={formData.price}
-                onChange={(value) => handleNumberInputChange("price", value || 0)}
+                onChange={(value) =>
+                  handleNumberInputChange("price", Number(value) || 0)
+                }
                 required
                 min={0}
-                precision={2}
+                step={0.01}
                 radius="md"
                 placeholder="19.99"
               />
@@ -773,13 +840,28 @@ export function AdminProducts() {
                 label="Stock Quantity"
                 name="stock_quantity"
                 value={formData.stock_quantity}
-                onChange={(value) => handleNumberInputChange("stock_quantity", value || 0)}
+                onChange={(value) =>
+                  handleNumberInputChange("stock_quantity", Number(value) || 0)
+                }
                 required
                 min={0}
                 radius="md"
                 placeholder="100"
               />
             </Group>
+
+            <Box mb="md">
+              <Select
+                label="Category"
+                name="category_id"
+                value={formData.category_id}
+                onChange={(value) => handleSelectChange("category_id", value)}
+                data={categories}
+                required
+                radius="md"
+                placeholder="Select a category"
+              />
+            </Box>
 
             <Box mb="md">
               <TextInput
@@ -833,10 +915,19 @@ export function AdminProducts() {
             <Divider my="lg" />
 
             <Group justify="flex-end">
-              <Button variant="light" color="gray" onClick={() => setModalOpen(false)} radius="md">
+              <Button
+                variant="light"
+                color="gray"
+                onClick={() => setModalOpen(false)}
+                radius="md"
+              >
                 Cancel
               </Button>
-              <Button type="submit" radius="md" color={currentProduct ? "blue" : "green"}>
+              <Button
+                type="submit"
+                radius="md"
+                color={currentProduct ? "blue" : "green"}
+              >
                 {currentProduct ? "Update Product" : "Create Product"}
               </Button>
             </Group>
@@ -844,8 +935,5 @@ export function AdminProducts() {
         </Modal>
       </Container>
     </AdminLayout>
-  )
+  );
 }
-
-export default AdminProducts
-
