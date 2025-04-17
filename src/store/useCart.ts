@@ -1,4 +1,3 @@
-// src/store/useCart.tsx
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import cartService from "../services/cart.service";
@@ -8,7 +7,7 @@ export interface Product {
   id: string;
   name: string;
   price: number;
-  image: string;
+  image?: string;
   description?: string;
   colors?: string[];
   sizes?: string[];
@@ -34,6 +33,12 @@ interface Cart {
   };
 }
 
+const initialCart: Cart = {
+  items: [],
+  item_count: 0,
+  total: 0,
+};
+
 interface CartState {
   cart: Cart;
   isLoading: boolean;
@@ -52,13 +57,6 @@ interface CartState {
   syncCartAfterLogin: () => Promise<void>;
 }
 
-// Define initialCart
-const initialCart: Cart = {
-  items: [],
-  item_count: 0,
-  total: 0,
-};
-
 export const useCart = create<CartState>()(
   persist(
     (set, get) => ({
@@ -67,11 +65,8 @@ export const useCart = create<CartState>()(
       error: null,
 
       fetchCart: async () => {
-        const { isAuthenticated } = useAuth.getState() as { isAuthenticated: boolean };
-
-        // Only fetch from API if user is authenticated
+        const { isAuthenticated } = useAuth.getState();
         if (!isAuthenticated) return;
-
         set({ isLoading: true, error: null });
         try {
           const cart = await cartService.getCart();
@@ -84,8 +79,8 @@ export const useCart = create<CartState>()(
         }
       },
 
-      addToCart: async (productId: string, quantity = 1, options = {}) => {
-        const { isAuthenticated } = useAuth.getState() as { isAuthenticated: boolean };
+      addToCart: async (productId, quantity = 1, options = {}) => {
+        const { isAuthenticated } = useAuth.getState();
         set({ isLoading: true, error: null });
 
         try {
@@ -135,13 +130,13 @@ export const useCart = create<CartState>()(
                 id: `local-${Date.now()}`,
                 product_id: productId,
                 quantity,
-                price: 0, // This would be fetched from product details
+                price: 0, 
                 product: {
                   id: productId,
                   name: "Product",
                   price: 0,
                   image: "",
-                }, // Placeholder
+                }, 
                 ...options,
               };
 
@@ -164,8 +159,8 @@ export const useCart = create<CartState>()(
         }
       },
 
-      updateCartItem: async (itemId: string, quantity: number) => {
-        const { isAuthenticated } = useAuth.getState() as { isAuthenticated: boolean };
+      updateCartItem: async (itemId, quantity) => {
+        const { isAuthenticated } = useAuth.getState();
         set({ isLoading: true, error: null });
 
         try {
@@ -210,8 +205,8 @@ export const useCart = create<CartState>()(
         }
       },
 
-      removeFromCart: async (itemId: string) => {
-        const { isAuthenticated } = useAuth.getState() as { isAuthenticated: boolean };
+      removeFromCart: async (itemId) => {
+        const { isAuthenticated } = useAuth.getState();
         set({ isLoading: true, error: null });
 
         try {
@@ -259,7 +254,7 @@ export const useCart = create<CartState>()(
       },
 
       clearCart: async () => {
-        const { isAuthenticated } = useAuth.getState() as { isAuthenticated: boolean };
+        const { isAuthenticated } = useAuth.getState();
         set({ isLoading: true, error: null });
 
         try {
@@ -281,8 +276,8 @@ export const useCart = create<CartState>()(
         }
       },
 
-      applyCoupon: async (code: string) => {
-        const { isAuthenticated } = useAuth.getState() as { isAuthenticated: boolean };
+      applyCoupon: async (code) => {
+        const { isAuthenticated } = useAuth.getState();
 
         if (!isAuthenticated) {
           set({ error: "You must be logged in to apply a coupon" });
@@ -302,7 +297,7 @@ export const useCart = create<CartState>()(
       },
 
       removeCoupon: async () => {
-        const { isAuthenticated } = useAuth.getState() as { isAuthenticated: boolean };
+        const { isAuthenticated } = useAuth.getState();
 
         if (!isAuthenticated) return;
 
@@ -350,13 +345,14 @@ export const useCart = create<CartState>()(
   )
 );
 
-// Listen for auth changes to sync cart
-useAuth.subscribe((state, prevState) => {
-  const currentState = state as { isAuthenticated: boolean };
-  const previousState = prevState as { isAuthenticated: boolean };
-
-  if (!previousState.isAuthenticated && currentState.isAuthenticated) {
-    // User just logged in, sync cart
-    useCart.getState().syncCartAfterLogin();
-  }
-});
+// Setup auth subscription outside the store creation
+// This should be in a separate initialization file or component
+// to avoid circular dependencies
+export const initCartSubscription = () => {
+  useAuth.subscribe((state, prevState) => {
+    if (!prevState.isAuthenticated && state.isAuthenticated) {
+      // User just logged in, sync cart
+      useCart.getState().syncCartAfterLogin();
+    }
+  });
+};

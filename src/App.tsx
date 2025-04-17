@@ -16,7 +16,7 @@ import { ProductListPage } from "./pages/ProductListPage";
 import { ProductPage } from "./pages/ProductPage";
 import { CartPage } from "./pages/CartPage";
 import { CheckoutPage } from "./pages/checkout/CheckoutPage";
-import LoginPage from "./components/auth/Login";
+import LoginPage from "./pages/user/LogIn";
 import SignupPage from "./pages/user/Signup";
 import UserDashboard from "./pages/user/Dashboard";
 import { SettingsPage } from "./pages/user/Settings";

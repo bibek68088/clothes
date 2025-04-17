@@ -32,7 +32,7 @@ export function AuthGuard({ children, adminRequired = false }: AuthGuardProps) {
   }
 
   if (adminRequired && user?.role !== "admin") {
-    return null // This will be replaced by the redirect in the useEffect
+    return null 
   }
 
   return <>{children}</>

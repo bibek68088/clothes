@@ -1,32 +1,55 @@
-// src/services/productService.ts
-import api from './api';
+import api from "./api"
 
-export const getProducts = async (params = {}) => {
-  try {
-    const response = await api.get('/products', { params });
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching products:', error);
-    throw error;
-  }
-};
+export interface Product {
+  id: string
+  name: string
+  price: number
+  image_url?: string
+  description?: string
+  colors: string[]
+  sizes: string[]
+  average_rating: number | null
+  review_count: number
+}
 
-export const getProductById = async (id: string) => {
-  try {
-    const response = await api.get(`/products/${id}`);
-    return response.data.product;
-  } catch (error) {
-    console.error(`Error fetching product ${id}:`, error);
-    throw error;
-  }
-};
 
-export const getCategories = async () => {
-  try {
-    const response = await api.get('/products/categories/all');
-    return response.data.categories;
-  } catch (error) {
-    console.error('Error fetching categories:', error);
-    throw error;
+export interface ProductsResponse {
+  products: Product[]
+  pagination: {
+    total: number
+    page: number
+    limit: number
+    totalPages: number
   }
-};
+}
+
+export const productService = {
+  // Get all products with pagination and filters
+  getProducts: async (params: Record<string, any> = {}): Promise<ProductsResponse> => {
+    const response = await api.get("/admin/products", { params })
+    return response.data
+  },
+
+  // Get a single product by ID
+  getProduct: async (id: string): Promise<Product> => {
+    const response = await api.get(`/admin/products/${id}`)
+    return response.data.product
+  },
+
+  // Create a new product
+  createProduct: async (productData: Partial<Product>): Promise<Product> => {
+    const response = await api.post("/admin/products", productData)
+    return response.data.product
+  },
+
+  // Update an existing product
+  updateProduct: async (id: string, productData: Partial<Product>): Promise<Product> => {
+    const response = await api.put(`/admin/products/${id}`, productData)
+    return response.data.product
+  },
+
+  // Delete a product
+  deleteProduct: async (id: string): Promise<void> => {
+    await api.delete(`/admin/products/${id}`)
+  },
+}

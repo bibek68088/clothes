@@ -1,3 +1,4 @@
+// src/pages/auth/LoginPage.tsx
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
@@ -28,20 +29,40 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const { login, isLoading } = useAuth() as { login: (email: string, password: string) => Promise<void>; isLoading: boolean };
+  const { login, isLoading } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMessage(null);
 
+    if (!email || !password) {
+      setErrorMessage("Email and password are required");
+      return;
+    }
+
     try {
       await login(email, password);
+
+      // If remember me is not checked, we could set a session cookie instead
+      // of localStorage, but that would require backend changes
+
       // Redirect to home page after successful login
       navigate("/", { replace: true });
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Login failed");
     }
+  };
+
+  // Social login handlers
+  const handleFacebookLogin = () => {
+    // Implement Facebook OAuth login
+    alert("Facebook login not implemented");
+  };
+
+  const handleGithubLogin = () => {
+    // Implement GitHub OAuth login
+    alert("GitHub login not implemented");
   };
 
   return (
@@ -138,6 +159,7 @@ export default function LoginPage() {
               variant="outline"
               leftSection={<IconBrandFacebook size={16} />}
               className="border-gray-300 hover:bg-gray-50"
+              onClick={handleFacebookLogin}
             >
               Facebook
             </Button>
@@ -145,6 +167,7 @@ export default function LoginPage() {
               variant="outline"
               leftSection={<IconBrandGithub size={16} />}
               className="border-gray-300 hover:bg-gray-50"
+              onClick={handleGithubLogin}
             >
               GitHub
             </Button>
