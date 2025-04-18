@@ -1,5 +1,3 @@
-"use client"
-
 import type React from "react"
 import { useState } from "react"
 import { Text, Rating, Textarea, Button, Group } from "@mantine/core"
@@ -27,12 +25,12 @@ export function ReviewForm({ onSubmit, onCancel }: ReviewFormProps) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <Text weight={500} size="sm" className="mb-2">
+      <Text fw={500} size="sm" className="mb-2">
         Your Rating
       </Text>
       <Rating value={rating} onChange={setRating} size="lg" className="mb-4" />
 
-      <Text weight={500} size="sm" className="mb-2">
+      <Text fw={500} size="sm" className="mb-2">
         Your Review (optional)
       </Text>
       <Textarea
@@ -49,7 +47,7 @@ export function ReviewForm({ onSubmit, onCancel }: ReviewFormProps) {
         </Text>
       )}
 
-      <Group position="right">
+      <Group justify="right">
         <Button variant="subtle" onClick={onCancel}>
           Cancel
         </Button>

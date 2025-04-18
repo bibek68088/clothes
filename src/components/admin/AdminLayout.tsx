@@ -42,7 +42,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const { logout, user } = useAuth();
   const [opened, { toggle }] = useDisclosure();
-  const [notifications, setNotifications] = useState(3); // Mock notification count
+  const [notifications, setNotifications] = useState(3);
 
   // Redirect if not admin
   React.useEffect(() => {

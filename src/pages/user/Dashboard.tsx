@@ -99,10 +99,6 @@ export default function UserDashboard() {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        // In a real app, these would be actual API calls
-        // For now, we'll use mock data
-
-        // Mock recent orders
         setRecentOrders([
           {
             id: "ORD-1234",
@@ -127,7 +123,6 @@ export default function UserDashboard() {
           },
         ]);
 
-        // Mock wishlist items
         setWishlistItems([
           {
             id: "1",
@@ -157,7 +152,6 @@ export default function UserDashboard() {
           },
         ]);
 
-        // Mock notifications
         setNotifications([
           {
             id: "1",
@@ -264,7 +258,6 @@ export default function UserDashboard() {
   return (
     <div className="bg-gray-50 min-h-screen py-8">
       <Container size="xl">
-        {/* Welcome Section */}
         <motion.div
           initial="hidden"
           animate="visible"
@@ -275,7 +268,6 @@ export default function UserDashboard() {
             variants={itemVariants}
             className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl p-6 text-white overflow-hidden relative"
           >
-            {/* Decorative elements */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mt-32 -mr-32"></div>
             <div className="absolute bottom-0 left-0 w-40 h-40 bg-white opacity-5 rounded-full -mb-20 -ml-20"></div>
 
@@ -461,7 +453,6 @@ export default function UserDashboard() {
         </motion.div>
 
         <Grid gutter={24}>
-          {/* Left Column - Navigation & Notifications */}
           <Grid.Col span={{ base: 12, md: 4 }} order={{ md: 2 }}>
             <motion.div
               initial="hidden"
@@ -631,14 +622,12 @@ export default function UserDashboard() {
             </motion.div>
           </Grid.Col>
 
-          {/* Right Column - Content */}
           <Grid.Col span={{ base: 12, md: 8 }} order={{ md: 1 }}>
             <motion.div
               initial="hidden"
               animate="visible"
               variants={containerVariants}
             >
-              {/* Recent Orders */}
               <MotionPaper
                 variants={itemVariants}
                 shadow="sm"
@@ -747,7 +736,6 @@ export default function UserDashboard() {
                 )}
               </MotionPaper>
 
-              {/* Order Statistics */}
               <MotionPaper
                 variants={itemVariants}
                 shadow="sm"
@@ -827,7 +815,6 @@ export default function UserDashboard() {
                 </SimpleGrid>
               </MotionPaper>
 
-              {/* Wishlist Preview */}
               <MotionPaper
                 variants={itemVariants}
                 shadow="sm"

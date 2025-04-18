@@ -34,7 +34,6 @@ const ProductModal: React.FC<ProductModalProps> = ({
           key="add-to-cart"
           className="w-full bg-black text-white py-3 rounded-full hover:bg-gray-800 transition"
           onClick={() => {
-            // Add to cart logic
             onClose();
           }}
         >

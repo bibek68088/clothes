@@ -26,21 +26,18 @@ export function SettingsPage() {
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Profile form state
   const [profileForm, setProfileForm] = useState({
     name: user?.name || "",
     email: user?.email || "",
     phone: user?.phone || "",
   })
 
-  // Password form state
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   })
 
-  // Notification preferences
   const [notificationPrefs, setNotificationPrefs] = useState({
     emailNotifications: true,
     orderUpdates: true,
@@ -48,7 +45,6 @@ export function SettingsPage() {
     accountAlerts: true,
   })
 
-  // Address form state
   const [addressForm, setAddressForm] = useState({
     street: user?.address?.street || "",
     city: user?.address?.city || "",
@@ -64,7 +60,6 @@ export function SettingsPage() {
     setError(null)
 
     try {
-      // In a real app, this would call an API
       await updateProfile(profileForm)
       setSuccess(true)
     } catch (err) {
@@ -87,9 +82,7 @@ export function SettingsPage() {
     }
 
     try {
-      // In a real app, this would call an API
-      // await changePassword(passwordForm);
-      await new Promise((resolve) => setTimeout(resolve, 1000)) // Simulate API call
+       await new Promise((resolve) => setTimeout(resolve, 1000))
       setSuccess(true)
       setPasswordForm({
         currentPassword: "",
@@ -110,9 +103,7 @@ export function SettingsPage() {
     setError(null)
 
     try {
-      // In a real app, this would call an API
-      // await updateAddress(addressForm);
-      await new Promise((resolve) => setTimeout(resolve, 1000)) // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000))
       setSuccess(true)
     } catch (err) {
       setError("Failed to update address. Please try again.")
@@ -128,9 +119,7 @@ export function SettingsPage() {
     setError(null)
 
     try {
-      // In a real app, this would call an API
-      // await updateNotificationPreferences(notificationPrefs);
-      await new Promise((resolve) => setTimeout(resolve, 1000)) // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000))
       setSuccess(true)
     } catch (err) {
       setError("Failed to update notification preferences. Please try again.")
@@ -229,7 +218,6 @@ export function SettingsPage() {
             </form>
           </Tabs.Panel>
 
-          {/* Password Tab */}
           <Tabs.Panel value="password">
             {success && (
               <Alert icon={<Check size={16} />} title="Success" color="green" mb="md">
@@ -279,7 +267,6 @@ export function SettingsPage() {
             </form>
           </Tabs.Panel>
 
-          {/* Notifications Tab */}
           <Tabs.Panel value="notifications">
             {success && (
               <Alert icon={<Check size={16} />} title="Success" color="green" mb="md">
@@ -382,7 +369,6 @@ export function SettingsPage() {
             </form>
           </Tabs.Panel>
 
-          {/* Address Tab */}
           <Tabs.Panel value="address">
             {success && (
               <Alert icon={<Check size={16} />} title="Success" color="green" mb="md">
@@ -471,7 +457,6 @@ export function SettingsPage() {
             </form>
           </Tabs.Panel>
 
-          {/* Admin Settings Tab */}
           {user?.role === "admin" && (
             <Tabs.Panel value="admin">
               <Title order={3} mb="md">

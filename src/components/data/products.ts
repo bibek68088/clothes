@@ -36,7 +36,6 @@ export const PRODUCTS: Product[] = [
   },
 ];
 
-// Helper function to find a product by ID
 export const getProductById = (id: string): Product | undefined => {
   return PRODUCTS.find((product) => product.id === id);
 };

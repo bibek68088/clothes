@@ -15,10 +15,8 @@ export function AuthGuard({ children, adminRequired = false }: AuthGuardProps) {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      // Redirect to login page and save the location they were trying to access
       navigate("/login", { state: { from: location.pathname } })
     } else if (adminRequired && user?.role !== "admin") {
-      // If admin access is required but user is not an admin, redirect to home
       navigate("/")
     }
   }, [isAuthenticated, user, adminRequired, navigate, location.pathname])

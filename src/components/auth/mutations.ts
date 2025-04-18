@@ -1,5 +1,3 @@
-// api/mutations.js - GraphQL mutation definitions
-
 import { gql } from "@apollo/client";
 
 export const VERIFY_ADDRESS = gql`

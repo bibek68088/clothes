@@ -22,7 +22,6 @@ interface NewArrivalsProps {
   onProductClick?: (product: Product) => void;
 }
 
-// Mock data - ideally this would be moved to a separate file or fetched from an API
 const products: Product[] = [
   {
     id: "1",
@@ -66,7 +65,6 @@ const products: Product[] = [
   },
 ];
 
-// Memoized product card component to prevent unnecessary re-renders
 const ProductCard = memo(({ 
   product, 
   isHovered, 
@@ -154,23 +152,19 @@ export function NewArrivals({ onProductClick }: NewArrivalsProps) {
   const [quantity, setQuantity] = useState(1);
 
   const handleAddToCart = useCallback(() => {
-    // Placeholder for add to cart logic
     console.log(
       "Added to cart:",
       quickViewProduct?.name,
       "Quantity:",
       quantity
     );
-    // Close modal after adding to cart
     setQuickViewProduct(null);
   }, [quickViewProduct, quantity]);
 
   const handleProductPageNavigation = useCallback((product: Product) => {
-    // First, check if a custom onProductClick handler is provided
     if (onProductClick) {
       onProductClick(product);
     } else {
-      // Default navigation or logging
       navigate(`/product/${product.id}`);
     }
   }, [onProductClick, navigate]);
@@ -217,7 +211,7 @@ export function NewArrivals({ onProductClick }: NewArrivalsProps) {
                 onMouseLeave={() => setHoveredProduct(null)}
                 onProductClick={() => handleProductPageNavigation(product)}
                 onQuickViewClick={(e) => {
-                  e.stopPropagation(); // Prevent product page navigation
+                  e.stopPropagation();
                   setQuickViewProduct(product);
                   setQuantity(1);
                 }}
@@ -226,7 +220,6 @@ export function NewArrivals({ onProductClick }: NewArrivalsProps) {
           </div>
         </div>
 
-        {/* Quick View Modal using Ant Design */}
         <Modal
           open={!!quickViewProduct}
           onCancel={handleCloseModal}
@@ -240,7 +233,6 @@ export function NewArrivals({ onProductClick }: NewArrivalsProps) {
         >
           {quickViewProduct && (
             <div className="flex flex-col md:flex-row">
-              {/* Left Side - Image */}
               <div className="w-full md:w-1/2 relative">
                 <img
                   src={quickViewProduct.image}
@@ -253,7 +245,6 @@ export function NewArrivals({ onProductClick }: NewArrivalsProps) {
                 </button>
               </div>
 
-              {/* Right Side - Product Details */}
               <div className="w-full md:w-1/2 p-6 md:p-8 flex flex-col justify-between">
                 <div>
                   <h2 className="text-xl md:text-2xl font-medium mb-2">

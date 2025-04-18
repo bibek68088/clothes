@@ -9,7 +9,6 @@ const ProductTimer: React.FC = () => {
     seconds: 18
   });
 
-  // Optionally, add a countdown effect
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeRemaining(prev => {

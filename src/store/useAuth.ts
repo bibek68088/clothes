@@ -1,8 +1,6 @@
-// src/store/useAuth.ts
 import { create } from "zustand";
 import authService, {
   type User,
-  type LoginCredentials,
   type RegisterData,
 } from "../services/auth.service";
 
@@ -12,7 +10,6 @@ interface AuthState {
   isAuthenticated: boolean;
   error: string | null;
 
-  // Auth actions
   register: (
     name: string,
     email: string,
@@ -22,22 +19,17 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 
-  // Profile actions
   fetchProfile: () => Promise<void>;
   updateProfile: (userData: Partial<User>) => Promise<void>;
-
-  // Initialize auth from localStorage
   initAuth: () => void;
 }
 
 export const useAuth = create<AuthState>((set, get) => ({
-  // Initial state
   user: authService.getCurrentUser(),
   isLoading: false,
   isAuthenticated: authService.isAuthenticated(),
   error: null,
 
-  // Initialize auth from localStorage
   initAuth: () => {
     const user = authService.getCurrentUser();
     set({
@@ -46,7 +38,6 @@ export const useAuth = create<AuthState>((set, get) => ({
     });
   },
 
-  // Register function
   register: async (
     name: string,
     email: string,
@@ -75,7 +66,6 @@ export const useAuth = create<AuthState>((set, get) => ({
     }
   },
 
-  // Login function
   login: async (email: string, password: string) => {
     set({ isLoading: true, error: null });
 
@@ -96,7 +86,6 @@ export const useAuth = create<AuthState>((set, get) => ({
     }
   },
 
-  // Logout function
   logout: () => {
     authService.logout();
     set({
@@ -105,7 +94,6 @@ export const useAuth = create<AuthState>((set, get) => ({
     });
   },
 
-  // Fetch user profile
   fetchProfile: async () => {
     set({ isLoading: true, error: null });
 
@@ -126,7 +114,6 @@ export const useAuth = create<AuthState>((set, get) => ({
     }
   },
 
-  // Update user profile
   updateProfile: async (userData: Partial<User>) => {
     set({ isLoading: true, error: null });
 
@@ -148,7 +135,6 @@ export const useAuth = create<AuthState>((set, get) => ({
   },
 }));
 
-// Initialize auth when app starts
 useAuth.getState().initAuth();
 
 export default useAuth;

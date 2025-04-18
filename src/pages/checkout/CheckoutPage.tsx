@@ -37,7 +37,6 @@ import {
 import { useForm } from "@mantine/form";
 import { z } from "zod";
 
-// Form validation schema
 const shippingSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
   email: z.string().email("Invalid email address"),
@@ -67,10 +66,12 @@ const creditCardSchema = z.object({
 
 export function CheckoutPage() {
   const { items, clearCart } = useCart();
-  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+  const totalItems = items.reduce(
+    (sum: any, item: any) => sum + item.quantity,
+    0
+  );
   const { user } = useAuth();
   const navigate = useNavigate();
-
   const [paymentMethod, setPaymentMethod] = useState("credit-card");
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -78,7 +79,6 @@ export function CheckoutPage() {
   const [securityCode, setSecurityCode] = useState("");
   const [isAddressVerified, setIsAddressVerified] = useState(false);
 
-  // Form handling with validation
   const shippingForm = useForm({
     initialValues: {
       name: user?.name || "",
@@ -123,30 +123,26 @@ export function CheckoutPage() {
     },
   });
 
-  // Calculate order totals
   const subtotal = items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+    (sum: any, item: any) => sum + item.price * item.quantity,
     0
   );
   const shipping = subtotal >= 100 ? 0 : 5.99;
-  const tax = subtotal * 0.08; // 8% tax
+  const tax = subtotal * 0.08;
   const total = subtotal + shipping + tax;
 
-  // Redirect if cart is empty
   useEffect(() => {
     if (totalItems === 0 && !orderPlaced) {
       navigate("/cart");
     }
   }, [totalItems, navigate, orderPlaced]);
 
-  // Address verification mutation
   const verifyAddressMutation = useMutation({
     mutationFn: verifyAddress,
     onSuccess: () => {
       setIsAddressVerified(true);
     },
     onError: () => {
-      // Handle address verification error
       shippingForm.setErrors({
         street: "Could not verify address",
         city: "Could not verify address",
@@ -156,7 +152,6 @@ export function CheckoutPage() {
     },
   });
 
-  // Create order mutation
   const createOrderMutation = useMutation({
     mutationFn: createOrder,
     onSuccess: (data) => {
@@ -168,21 +163,17 @@ export function CheckoutPage() {
           paymentDetails: creditCardForm.values,
         });
       }
-      // For PayPal, payment is handled by PayPal SDK
     },
     onError: () => {
       setLoading(false);
     },
   });
 
-  // Process payment mutation
   const processPaymentMutation = useMutation({
     mutationFn: processPayment,
     onSuccess: () => {
       setOrderPlaced(true);
       clearCart();
-
-      // Redirect to order confirmation after a delay
       setTimeout(() => {
         navigate(`/order-confirmation/${orderId}`);
       }, 2000);
@@ -195,7 +186,6 @@ export function CheckoutPage() {
     },
   });
 
-  // Verify address before submitting
   const handleVerifyAddress = () => {
     const shippingData = shippingForm.values;
     if (Object.keys(shippingForm.validate()).length === 0) {
@@ -203,7 +193,6 @@ export function CheckoutPage() {
     }
   };
 
-  // Credit card submission handler
   const handleCreditCardSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -214,8 +203,6 @@ export function CheckoutPage() {
 
     if (Object.keys(creditCardForm.validate()).length === 0) {
       setLoading(true);
-
-      // Create order first
       createOrderMutation.mutate({
         items,
         shippingDetails: shippingForm.values,
@@ -227,7 +214,6 @@ export function CheckoutPage() {
     }
   };
 
-  // PayPal handlers
   const createPayPalOrder = async () => {
     if (!isAddressVerified) {
       handleVerifyAddress();
@@ -254,39 +240,39 @@ export function CheckoutPage() {
     }
   };
 
-  const onPayPalApprove = async (data: { orderID: string; payerID?: string | null }) => {
-      try {
-        if (!data.payerID) {
-          console.warn("Payer ID is missing, proceeding without it.");
-        }
-  
-        await processPayment({
-          orderId,
-          paymentMethod: "paypal",
-          paymentDetails: {
-            paypalOrderId: data.orderID,
-            paypalPayerId: data.payerID || null,
-          },
-        });
-  
-        setOrderPlaced(true);
-        clearCart();
-  
-        // Redirect to order confirmation
-        setTimeout(() => {
-          navigate(`/order-confirmation/${orderId}`);
-        }, 2000);
-      } catch (error) {
-        setLoading(false);
+  const onPayPalApprove = async (data: {
+    orderID: string;
+    payerID?: string | null;
+  }) => {
+    try {
+      if (!data.payerID) {
+        console.warn("Payer ID is missing, proceeding without it.");
       }
-    };
 
-  // Generate a random 3-digit security code for the CVV field placeholder
+      await processPayment({
+        orderId,
+        paymentMethod: "paypal",
+        paymentDetails: {
+          paypalOrderId: data.orderID,
+          paypalPayerId: data.payerID || null,
+        },
+      });
+
+      setOrderPlaced(true);
+      clearCart();
+
+      setTimeout(() => {
+        navigate(`/order-confirmation/${orderId}`);
+      }, 2000);
+    } catch (error) {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     setSecurityCode(Math.floor(Math.random() * 900 + 100).toString());
   }, []);
 
-  // Mask card number input
   const formatCardNumber = (value: string) => {
     if (!value) return "";
     const onlyNumbers = value.replace(/\D/g, "");
@@ -638,7 +624,7 @@ export function CheckoutPage() {
                   </Title>
 
                   <div className="max-h-60 overflow-y-auto mb-4">
-                    {items.map((item) => (
+                    {items.map((item: any) => (
                       <div
                         key={item.id}
                         className="flex items-center py-2 border-b"

@@ -1,4 +1,4 @@
-import { Container, Text, Group, ActionIcon, Divider } from "@mantine/core"
+import { Container, Text, Group, ActionIcon,} from "@mantine/core"
 import { Link } from "react-router-dom"
 import { Facebook, Twitter, Instagram, Linkedin, ShoppingBag } from "lucide-react"
 
@@ -103,19 +103,6 @@ export function Footer() {
           </div>
         </div>
 
-        <Divider my="xl" />
-
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          <Text size="sm" c="dimmed">
-            © {new Date().getFullYear()} Aashish. All rights reserved.
-          </Text>
-          <div className="flex gap-4">
-            <img src="/payment-visa.svg" alt="Visa" width={32} height={20} />
-            <img src="/payment-mastercard.svg" alt="Mastercard" width={32} height={20} />
-            <img src="/payment-paypal.svg" alt="PayPal" width={32} height={20} />
-            <img src="/payment-apple.svg" alt="Apple Pay" width={32} height={20} />
-          </div>
-        </div>
       </Container>
     </footer>
   )

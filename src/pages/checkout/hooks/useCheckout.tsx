@@ -1,20 +1,13 @@
-// api/checkout.js - GraphQL API functions for the checkout process
-
 import { client } from "./graphqlClient";
 import { getAuthHeaders } from "../../../components/utils/auth";
 import {
   VERIFY_ADDRESS,
   CREATE_ORDER,
   PROCESS_PAYMENT,
-  APPLY_PROMO_CODE
+  APPLY_PROMO_CODE,
 } from "../../../components/auth/mutations";
 import { GET_SHIPPING_METHODS } from "../../../components/auth/queries";
 
-/**
- * Verifies a shipping address for validity
- * @param {Object} addressData - The address data to verify
- * @returns {Promise<Object>} - Promise resolving to the verification results
- */
 export const verifyAddress = async (addressData: { [key: string]: any }) => {
   try {
     const { data } = await client.mutate({
@@ -41,11 +34,6 @@ export const verifyAddress = async (addressData: { [key: string]: any }) => {
   }
 };
 
-/**
- * Creates a new order in the system
- * @param {Object} orderData - Complete order information including items and shipping details
- * @returns {Promise<Object>} - Promise resolving to the created order information
- */
 export const createOrder = async (orderData: { [key: string]: any }) => {
   try {
     const { data } = await client.mutate({
@@ -66,11 +54,6 @@ export const createOrder = async (orderData: { [key: string]: any }) => {
   }
 };
 
-/**
- * Processes a payment for an existing order
- * @param {Object} paymentData - Payment details including orderId and method
- * @returns {Promise<Object>} - Promise resolving to payment confirmation
- */
 export const processPayment = async (paymentData: { [key: string]: any }) => {
   try {
     const { data } = await client.mutate({
@@ -91,8 +74,11 @@ export const processPayment = async (paymentData: { [key: string]: any }) => {
   } catch (error) {
     console.error("Payment processing error:", error);
 
-    // Handle specific error types
-    if (error instanceof Error && 'graphQLErrors' in error && Array.isArray((error as any).graphQLErrors)) {
+    if (
+      error instanceof Error &&
+      "graphQLErrors" in error &&
+      Array.isArray((error as any).graphQLErrors)
+    ) {
       const paymentDeclined = (error as any).graphQLErrors.find(
         (e: any) => e.extensions?.code === "PAYMENT_DECLINED"
       );
@@ -121,13 +107,10 @@ export const processPayment = async (paymentData: { [key: string]: any }) => {
   }
 };
 
-/**
- * Gets available shipping methods based on address and cart items
- * @param {Object} address - Shipping address
- * @param {Array} items - Cart items
- * @returns {Promise<Array>} - Promise resolving to available shipping methods
- */
-export const getShippingMethods = async (address: { [key: string]: any }, items: Array<any>) => {
+export const getShippingMethods = async (
+  address: { [key: string]: any },
+  items: Array<any>
+) => {
   try {
     const { data } = await client.query({
       query: GET_SHIPPING_METHODS,
@@ -135,7 +118,6 @@ export const getShippingMethods = async (address: { [key: string]: any }, items:
       context: {
         headers: getAuthHeaders(),
       },
-      // Don't cache shipping methods as they may change based on inventory
       fetchPolicy: "network-only",
     });
 
@@ -149,12 +131,6 @@ export const getShippingMethods = async (address: { [key: string]: any }, items:
   }
 };
 
-/**
- * Applies a promo code to the current order
- * @param {string} code - The promo code to apply
- * @param {Array} items - The current cart items
- * @returns {Promise<Object>} - Promise resolving to discount information
- */
 export const applyPromoCode = async (code: string, items: Array<any>) => {
   try {
     const { data } = await client.mutate({

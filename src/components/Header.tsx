@@ -64,20 +64,15 @@ export function Header() {
     <header className="border-b border-gray-200 bg-white">
       <Container size="xl" className="py-3">
         <div className="flex items-center justify-between">
-          {/* Logo */}
           <Link to="/" className="flex items-center gap-2 no-underline">
             <ShoppingBag size={28} className="text-blue-600" />
             <Text component="span" size="xl" fw={700} className="text-gray-900">
               Aashish
             </Text>
           </Link>
-
-          {/* Desktop Navigation */}
           <Group gap={30} className="hidden md:flex">
             {renderLinks()}
           </Group>
-
-          {/* Actions */}
           <Group gap={10}>
             <UnstyledButton className="hidden md:flex p-2 hover:bg-gray-100 rounded-full">
               <Search size={20} />
@@ -175,7 +170,6 @@ export function Header() {
         </div>
       </Container>
 
-      {/* Mobile Drawer */}
       <Drawer
         opened={drawerOpened}
         onClose={closeDrawer}

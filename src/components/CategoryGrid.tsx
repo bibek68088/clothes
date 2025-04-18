@@ -65,7 +65,6 @@ const categories = [
   },
 ];
 
-// Duplicate array for seamless looping
 const duplicatedCategories = [...categories, ...categories];
 
 const useWindowSize = () => {
@@ -82,8 +81,8 @@ const useWindowSize = () => {
 
 export function CategoryGrid() {
   const [isHovered, setIsHovered] = useState(false);
-  const [direction, setDirection] = useState(1); // 1 for right-to-left, -1 for left-to-right
-  const [speed, setSpeed] = useState(1); // Speed multiplier (1 is default)
+  const [direction, setDirection] = useState(1);
+  const [speed, setSpeed] = useState(1);
   const windowWidth = useWindowSize();
 
   const getVisibleItems = () => {
@@ -93,27 +92,25 @@ export function CategoryGrid() {
   };
 
   const visibleItems = getVisibleItems();
-  const baseDuration = categories.length * 4; // Base duration: 4 seconds per item
-  const animationDuration = baseDuration / speed; // Adjust duration based on speed
+  const baseDuration = categories.length * 4;
+  const animationDuration = baseDuration / speed;
 
-  // Handle arrow clicks
   const handleLeftClick = () => {
     if (direction === 1) {
-      setDirection(-1); // Reverse direction to left-to-right
+      setDirection(-1);
     } else {
-      setSpeed((prev) => Math.min(prev + 0.5, 3)); // Increase speed, max 3x
+      setSpeed((prev) => Math.min(prev + 0.5, 3));
     }
   };
 
   const handleRightClick = () => {
     if (direction === -1) {
-      setDirection(1); // Reverse direction to right-to-left
+      setDirection(1);
     } else {
-      setSpeed((prev) => Math.min(prev + 0.5, 3)); // Increase speed, max 3x
+      setSpeed((prev) => Math.min(prev + 0.5, 3));
     }
   };
 
-  // Keyboard arrow key support
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent): void => {
       if (event.key === "ArrowLeft") {
@@ -134,7 +131,6 @@ export function CategoryGrid() {
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="container mx-auto px-4 relative">
-        {/* Navigation Arrows */}
         <button
           onClick={handleLeftClick}
           className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/70 rounded-full p-2 shadow-md hover:bg-white transition-colors"
@@ -150,7 +146,6 @@ export function CategoryGrid() {
           <ChevronRight className="w-6 h-6" />
         </button>
 
-        {/* Carousel Container */}
         <div className="overflow-hidden">
           <div
             className="flex will-change-transform"
@@ -186,7 +181,6 @@ export function CategoryGrid() {
         </div>
       </div>
 
-      {/* CSS Animation */}
       <style>{`
         @keyframes scroll {
           0% {

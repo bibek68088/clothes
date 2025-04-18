@@ -76,7 +76,6 @@ export default function ProfilePage() {
     }
   };
 
-  // Menu items configuration
   const menuItems = [
     {
       label: "Profile",
@@ -109,13 +108,11 @@ export default function ProfilePage() {
           className="overflow-hidden"
         >
           <Grid gutter={0} className="m-0">
-            {/* Left side menu - Using span={{ base: 12, md: 3 }} for responsive layout */}
             <Grid.Col
               span={{ base: 12, md: 3 }}
               className="p-0 border-r border-gray-200"
             >
               <div className="py-6">
-                {/* User profile summary */}
                 <div className="px-4 mb-6 flex flex-col items-center">
                   <Avatar
                     size={80}
@@ -208,9 +205,7 @@ export default function ProfilePage() {
               </div>
             </Grid.Col>
 
-            {/* Main content */}
             <Grid.Col span={{ base: 12, md: 9 }} className="p-0">
-              {/* Header */}
               <Box className="bg-gradient-to-r from-blue-600 to-indigo-700 p-5 text-white">
                 <Title order={2} className="font-semibold">
                   My Account

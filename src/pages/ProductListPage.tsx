@@ -63,7 +63,6 @@ export function ProductListPage() {
     sizes: [],
   })
 
-  // Get current filter values from URL
   const currentPage = parseInt(searchParams.get("page") || "1", 10)
   const currentSort = searchParams.get("sort") || "created_at:desc"
   const currentSearch = searchParams.get("search") || ""

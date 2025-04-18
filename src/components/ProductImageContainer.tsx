@@ -26,12 +26,10 @@ const ProductImageContainer: React.FC = () => {
         className="w-full h-full object-cover sm:object-contain pt-16"
       />
       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-        {/* Wave circles */}
         <div className="absolute inset-0 animate-ping-slow bg-blue-500/30 rounded-full"></div>
         <div className="absolute inset-0 animate-ping-slow animation-delay-300 bg-blue-500/20 rounded-full"></div>
         <div className="absolute inset-0 animate-ping-slow animation-delay-600 bg-blue-500/10 rounded-full"></div>
 
-        {/* Button with Plus icon */}
         <button
           onClick={() => setIsModalOpen(true)}
           className="relative z-10 bg-white rounded-full p-3 shadow-lg hover:bg-gray-100 transition"
