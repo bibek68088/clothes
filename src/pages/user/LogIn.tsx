@@ -1,4 +1,3 @@
-// src/pages/auth/LoginPage.tsx
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
@@ -44,24 +43,25 @@ export default function LoginPage() {
     try {
       await login(email, password);
 
-      // If remember me is not checked, we could set a session cookie instead
-      // of localStorage, but that would require backend changes
+      // Get the current user from the store after login
+      const currentUser = useAuth.getState().user;
 
-      // Redirect to home page after successful login
-      navigate("/", { replace: true });
+      // Check role and navigate accordingly
+      if (currentUser?.role === "admin") {
+        navigate("/admin", { replace: true });
+      } else {
+        navigate("/user/dashboard", { replace: true });
+      }
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Login failed");
     }
   };
 
-  // Social login handlers
   const handleFacebookLogin = () => {
-    // Implement Facebook OAuth login
     alert("Facebook login not implemented");
   };
 
   const handleGithubLogin = () => {
-    // Implement GitHub OAuth login
     alert("GitHub login not implemented");
   };
 
