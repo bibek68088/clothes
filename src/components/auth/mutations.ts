@@ -53,11 +53,31 @@ export const APPLY_PROMO_CODE = gql`
   }
 `;
 
+export const loginMutation = gql`
+  mutation Login($email: String!, $password: String!) {
+    login(email: $email, password: $password) {
+      token
+      refreshToken
+      user {
+        id
+        name
+        email
+        role
+      }
+    }
+  }
+`;
+
 export const refreshTokenMutation = gql`
   mutation RefreshToken {
     refreshToken {
       token
-      expiresAt
+      user {
+        id
+        name
+        email
+        role
+      }
     }
   }
 `;

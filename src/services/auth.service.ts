@@ -1,4 +1,3 @@
-// src/services/authService.ts
 import api from "./api";
 import { notifications } from "@mantine/notifications";
 import { Check, X } from "lucide-react";
@@ -42,7 +41,6 @@ export interface AuthResponse {
   token: string;
 }
 
-// Token management
 const TOKEN_KEY = "auth-token";
 const USER_KEY = "auth-user";
 
@@ -63,18 +61,14 @@ const clearAuth = (): void => {
   localStorage.removeItem(USER_KEY);
 };
 
-// Login function
 export const login = async (
   credentials: LoginCredentials
 ): Promise<AuthResponse> => {
   try {
     const response = await api.post("/auth/login", credentials);
 
-    // Store token and user in localStorage
     setToken(response.data.token);
     setUser(response.data.user);
-
-    // Show success notification
     notifications.show({
       title: "Login Successful",
       message: `Welcome back, ${response.data.user.name}!`,
@@ -84,23 +78,18 @@ export const login = async (
 
     return response.data;
   } catch (error) {
-    // Error notification is handled by api interceptor
     throw error;
   }
 };
 
-// Register function
 export const register = async (
   userData: RegisterData
 ): Promise<AuthResponse> => {
   try {
     const response = await api.post("/auth/register", userData);
-
-    // Store token and user in localStorage
     setToken(response.data.token);
     setUser(response.data.user);
 
-    // Show success notification
     notifications.show({
       title: "Registration Successful",
       message: `Welcome, ${response.data.user.name}!`,
@@ -110,16 +99,12 @@ export const register = async (
 
     return response.data;
   } catch (error) {
-    // Error notification is handled by api interceptor
     throw error;
   }
 };
 
-// Logout function
 export const logout = (): void => {
   clearAuth();
-
-  // Show success notification
   notifications.show({
     title: "Logout Successful",
     message: "You have been logged out",
@@ -128,7 +113,6 @@ export const logout = (): void => {
   });
 };
 
-// Get current user function
 export const getCurrentUser = (): User | null => {
   const userStr = localStorage.getItem(USER_KEY);
   if (!userStr) return null;
@@ -141,40 +125,29 @@ export const getCurrentUser = (): User | null => {
   }
 };
 
-// Get user profile from API
 export const fetchUserProfile = async (): Promise<User> => {
   try {
     const response = await api.get("/auth/profile");
-
-    // Update stored user
     setUser(response.data.user);
-
     return response.data.user;
   } catch (error) {
     throw error;
   }
 };
 
-// Check if user is authenticated
 export const isAuthenticated = (): boolean => {
   return !!getToken();
 };
 
-// Check if user is admin
 export const isAdmin = (): boolean => {
   const user = getCurrentUser();
   return user?.role === "admin";
 };
 
-// Update user profile
 export const updateProfile = async (userData: Partial<User>): Promise<User> => {
   try {
     const response = await api.put("/auth/profile", userData);
-
-    // Update stored user
     setUser(response.data.user);
-
-    // Show success notification
     notifications.show({
       title: "Profile Updated",
       message: "Your profile has been updated successfully",
@@ -188,18 +161,13 @@ export const updateProfile = async (userData: Partial<User>): Promise<User> => {
   }
 };
 
-// Update address
 export const updateAddress = async (
   addressId: string,
   addressData: Partial<Address>
 ): Promise<User> => {
   try {
     const response = await api.put(`/auth/address/${addressId}`, addressData);
-
-    // Update stored user with new address information
     setUser(response.data.user);
-
-    // Show success notification
     notifications.show({
       title: "Address Updated",
       message: "Your address has been updated successfully",
@@ -213,15 +181,10 @@ export const updateAddress = async (
   }
 };
 
-// Delete address
 export const deleteAddress = async (addressId: string): Promise<User> => {
   try {
     const response = await api.delete(`/auth/address/${addressId}`);
-
-    // Update stored user without the deleted address
     setUser(response.data.user);
-
-    // Show success notification
     notifications.show({
       title: "Address Deleted",
       message: "Your address has been deleted successfully",
@@ -235,15 +198,12 @@ export const deleteAddress = async (addressId: string): Promise<User> => {
   }
 };
 
-// Change password
 export const changePassword = async (
   currentPassword: string,
   newPassword: string
 ): Promise<void> => {
   try {
     await api.post("/auth/change-password", { currentPassword, newPassword });
-
-    // Show success notification
     notifications.show({
       title: "Password Changed",
       message: "Your password has been changed successfully",
@@ -255,12 +215,9 @@ export const changePassword = async (
   }
 };
 
-// Request password reset
 export const requestPasswordReset = async (email: string): Promise<void> => {
   try {
     await api.post("/auth/forgot-password", { email });
-
-    // Show success notification
     notifications.show({
       title: "Reset Email Sent",
       message: "Check your email for password reset instructions",
@@ -272,15 +229,12 @@ export const requestPasswordReset = async (email: string): Promise<void> => {
   }
 };
 
-// Reset password with token
 export const resetPassword = async (
   token: string,
   newPassword: string
 ): Promise<void> => {
   try {
     await api.post("/auth/reset-password", { token, newPassword });
-
-    // Show success notification
     notifications.show({
       title: "Password Reset",
       message: "Your password has been reset successfully",
@@ -292,12 +246,9 @@ export const resetPassword = async (
   }
 };
 
-// Verify email with token
 export const verifyEmail = async (token: string): Promise<void> => {
   try {
     await api.post("/auth/verify-email", { token });
-
-    // Show success notification
     notifications.show({
       title: "Email Verified",
       message: "Your email has been verified successfully",
@@ -309,7 +260,6 @@ export const verifyEmail = async (token: string): Promise<void> => {
   }
 };
 
-// Export default object
 const authService = {
   login,
   register,
